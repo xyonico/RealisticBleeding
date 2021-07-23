@@ -1,5 +1,4 @@
 using HarmonyLib;
-using RainyReignGames.RevealMask;
 using ThunderRoad;
 using UnityEngine;
 
@@ -8,10 +7,18 @@ namespace RealisticBleeding
 	internal static class EntryPoint
 	{
 		private const string HarmonyID = "com.xyonico.realistic-bleeding";
+		private static bool _hasLoaded;
 
-		internal static void OnLoaded()
+		public static Configuration Configuration { get; private set; }
+
+		internal static void OnLoaded(Configuration configuration)
 		{
+			if (_hasLoaded) return;
+
+			_hasLoaded = true;
 			Debug.Log("Realistic Bleeding loaded!");
+
+			Configuration = configuration;
 
 			var harmony = new Harmony(HarmonyID);
 			harmony.PatchAll(typeof(EntryPoint).Assembly);
@@ -19,6 +26,17 @@ namespace RealisticBleeding
 
 		internal static void OnUpdate()
 		{
+			if (Input.GetKeyDown(KeyCode.K))
+			{
+				foreach (var texture in Resources.FindObjectsOfTypeAll<Texture>())
+				{
+					if (texture.name.Contains("Particle"))
+					{
+						Debug.Log(texture.name);
+					}
+				}
+			}
+			
 			if (Input.GetKeyDown(KeyCode.T))
 			{
 				var cam = Spectator.local.cam.transform;

@@ -8,15 +8,15 @@ namespace RealisticBleeding
 		private static bool _hasAssignedLayerMask;
 		private static int _layerMask;
 
-		private const float FrequencyRangeMin = 0.4f;
-		private const float FrequencyRangeMax = 2.5f;
+		private const float FrequencyRangeMin = 0.7f;
+		private const float FrequencyRangeMax = 1.2f;
 		private const float DurationRangeMin = 2;
-		private const float DurationRangeMax = 5;
-		private const float RandomSpawnOffsetMax = 0.015f;
+		private const float DurationRangeMax = 4;
 
 		public float FrequencyMultiplier { get; set; } = 1;
 		public float DurationMultiplier { get; set; } = 1;
 		public float SizeMultiplier { get; set; } = 1;
+		public Vector2 Dimensions { get; set; } = new Vector2(0.01f, 0.01f);
 
 		private float _timer;
 		private float _nextDropTime;
@@ -45,7 +45,7 @@ namespace RealisticBleeding
 			{
 				_timer -= _nextDropTime;
 
-				_nextDropTime = Random.Range(FrequencyRangeMin, FrequencyRangeMax) * FrequencyMultiplier;
+				_nextDropTime = Random.Range(FrequencyRangeMin, FrequencyRangeMax) / FrequencyMultiplier;
 				
 				SpawnDroplet();
 			}
@@ -60,18 +60,16 @@ namespace RealisticBleeding
 
 		private void SpawnDroplet()
 		{
-			Debug.Log("Spawning droplet");
 			var bloodDropObject = new GameObject("Blood Drop");
 			var bloodDrop = bloodDropObject.AddComponent<BloodDrop>();
 			var decalDrawer = bloodDropObject.AddComponent<BloodDropDecalDrawer>();
 
 			bloodDrop.LayerMask = _layerMask;
 
-			var spawnPos = transform.position;
+			var randomOffset = new Vector3(Random.Range(-Dimensions.x, Dimensions.x), 0, Random.Range(-Dimensions.y, Dimensions.y));
+			randomOffset *= 0.5f;
 
-			var randomOffset = Random.insideUnitSphere * RandomSpawnOffsetMax;
-
-			bloodDrop.transform.position = spawnPos + randomOffset;
+			bloodDrop.transform.position = transform.TransformPoint(randomOffset);
 			bloodDrop.AttachToNearestCollider(0.2f);
 		}
 	}

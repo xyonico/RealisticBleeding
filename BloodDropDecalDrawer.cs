@@ -23,6 +23,7 @@ namespace RealisticBleeding
 					if (texture2D.name == "Default-Particle")
 					{
 						_particleTexture = texture2D;
+						break;
 					}
 				}
 
@@ -66,8 +67,8 @@ namespace RealisticBleeding
 						var normal = _bloodDrop.LastSurfaceNormal;
 						var posOffset = normal * 0.07f;
 
-						StartCoroutine(RevealMaskProjection.ProjectAsync(transform.position + posOffset, -normal, Vector3.up, 0.71f,
-							0.0055f * SizeMultiplier, ParticleTexture, new Vector4(1f, 0, 0, 0), renderers, revealData, null));
+						StartCoroutine(RevealMaskProjection.ProjectAsync(transform.position + posOffset, -normal, Vector3.up, 0.12f,
+							0.005f * SizeMultiplier, ParticleTexture, new Vector4(0.4f, 0, 0, 0), renderers, revealData, null));
 					}
 				}
 			}

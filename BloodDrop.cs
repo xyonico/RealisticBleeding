@@ -1,9 +1,11 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RealisticBleeding
 {
 	public class BloodDrop : MonoBehaviour
 	{
+		private static readonly List<BloodDrop> _activeBloodDrops = new List<BloodDrop>();
 		private static readonly Collider[] _colliders = new Collider[16];
 
 		[SerializeField]
@@ -37,6 +39,20 @@ namespace RealisticBleeding
 			_myCollider.isTrigger = true;
 			
 			Destroy(gameObject, 7);
+			
+			_activeBloodDrops.Add(this);
+
+			if (_activeBloodDrops.Count >= EntryPoint.Configuration.MaxActiveBloodDrips)
+			{
+				var oldestDrop = _activeBloodDrops[0];
+				_activeBloodDrops.RemoveAt(0);
+				Destroy(oldestDrop.gameObject);
+			}
+		}
+
+		private void OnDestroy()
+		{
+			_activeBloodDrops.Remove(this);
 		}
 
 		private void FixedUpdate()

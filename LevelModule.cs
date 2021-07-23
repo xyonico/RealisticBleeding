@@ -1,12 +1,16 @@
+using System;
 using ThunderRoad;
 
 namespace RealisticBleeding
 {
+	[Serializable]
 	public class LevelModule : ThunderRoad.LevelModule
 	{
-		static LevelModule()
+		public Configuration Configuration = new Configuration();
+		
+		private LevelModule()
 		{
-			EntryPoint.OnLoaded();
+			EntryPoint.OnLoaded(Configuration);
 		}
 
 		public override void Update(Level level)
