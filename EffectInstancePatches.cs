@@ -39,7 +39,7 @@ namespace RealisticBleeding
 					intensity *= 0.2f;
 				}
 
-				var multiplier = Mathf.Lerp(0.3f, 1.7f, Mathf.InverseLerp(minIntensity, 1, intensity));
+				var multiplier = Mathf.Lerp(0.6f, 1.5f, Mathf.InverseLerp(minIntensity, 1, intensity));
 
 				var bleederObject = new GameObject("Bleeder");
 				var bleeder = bleederObject.AddComponent<Bleeder>();

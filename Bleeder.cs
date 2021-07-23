@@ -8,10 +8,10 @@ namespace RealisticBleeding
 		private static bool _hasAssignedLayerMask;
 		private static int _layerMask;
 
-		private const float FrequencyRangeMin = 0.7f;
-		private const float FrequencyRangeMax = 1.2f;
-		private const float DurationRangeMin = 2;
-		private const float DurationRangeMax = 4;
+		private const float FrequencyRangeMin = 0.75f;
+		private const float FrequencyRangeMax = 1.75f;
+		private const float DurationRangeMin = 4f;
+		private const float DurationRangeMax = 10f;
 
 		public float FrequencyMultiplier { get; set; } = 1;
 		public float DurationMultiplier { get; set; } = 1;
@@ -24,7 +24,7 @@ namespace RealisticBleeding
 
 		private void Awake()
 		{
-			_durationRemaining = Random.Range(DurationRangeMin, DurationRangeMax) * DurationMultiplier;
+			_durationRemaining = Random.Range(DurationRangeMin, DurationRangeMax) * DurationMultiplier * EntryPoint.Configuration.BleedDurationMultiplier;
 			
 			if (!_hasAssignedLayerMask)
 			{
@@ -45,7 +45,7 @@ namespace RealisticBleeding
 			{
 				_timer -= _nextDropTime;
 
-				_nextDropTime = Random.Range(FrequencyRangeMin, FrequencyRangeMax) / FrequencyMultiplier;
+				_nextDropTime = Random.Range(FrequencyRangeMin, FrequencyRangeMax) / (FrequencyMultiplier * EntryPoint.Configuration.BloodAmountMultiplier);
 				
 				SpawnDroplet();
 			}
@@ -65,6 +65,7 @@ namespace RealisticBleeding
 			var decalDrawer = bloodDropObject.AddComponent<BloodDropDecalDrawer>();
 
 			bloodDrop.LayerMask = _layerMask;
+			decalDrawer.SizeMultiplier = SizeMultiplier;
 
 			var randomOffset = new Vector3(Random.Range(-Dimensions.x, Dimensions.x), 0, Random.Range(-Dimensions.y, Dimensions.y));
 			randomOffset *= 0.5f;

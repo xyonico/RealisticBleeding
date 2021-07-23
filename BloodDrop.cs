@@ -15,17 +15,17 @@ namespace RealisticBleeding
 		private float _surfaceDrag = 40;
 
 		[SerializeField]
-		private float _surfaceNormalVarianceMaxAngle = 10;
-
+		private float _dripDurationRequired = 1f;
+		
 		[SerializeField]
-		private float _surfaceNormalNoiseScale = 1;
+		private float _maxVelocityToDrip = 0.08f;
 
 		private Vector3 _velocity;
 		private SphereCollider _myCollider;
 		private bool _isOnSurface;
 		private Collider _surfaceCollider;
 		private Vector3 _surfacePosition;
-		private float _distanceTravelledOnSurface;
+		private float _dripTime;
 
 		public int LayerMask { get; set; } = ~0;
 
@@ -44,9 +44,10 @@ namespace RealisticBleeding
 
 			if (_activeBloodDrops.Count >= EntryPoint.Configuration.MaxActiveBloodDrips)
 			{
-				var oldestDrop = _activeBloodDrops[0];
-				_activeBloodDrops.RemoveAt(0);
-				Destroy(oldestDrop.gameObject);
+				var randomIndex = Random.Range(1, _activeBloodDrops.Count);
+				var randomDrop = _activeBloodDrops[randomIndex];
+				_activeBloodDrops.RemoveAt(randomIndex);
+				Destroy(randomDrop.gameObject);
 			}
 		}
 
@@ -73,11 +74,11 @@ namespace RealisticBleeding
 			{
 				transform.position = _surfaceCollider.transform.TransformPoint(_surfacePosition);
 
+				var prevPos = transform.position;
+				
 				Depenetrate();
 
 				_velocity *= 1 - Time.deltaTime * _surfaceDrag;
-
-				var prevPos = transform.position;
 
 				var newPos = transform.position + _velocity * Time.deltaTime;
 
@@ -91,8 +92,26 @@ namespace RealisticBleeding
 					
 					AssignNewSurfaceValues(closestPoint, _surfaceCollider);
 				}
+				
+				var velocitySqr = (prevPos - transform.position).sqrMagnitude;
 
-				_distanceTravelledOnSurface += (prevPos - transform.position).magnitude * _surfaceNormalNoiseScale;
+				var maxVelocity = _maxVelocityToDrip * Time.deltaTime;
+
+				if (velocitySqr < maxVelocity * maxVelocity)
+				{
+					_dripTime += Time.deltaTime;
+
+					if (_dripTime >= _dripDurationRequired)
+					{
+						_dripTime = 0;
+						_isOnSurface = false;
+						_surfaceCollider = null;
+					}
+				}
+				else
+				{
+					_dripTime = 0;
+				}
 
 				return;
 			}

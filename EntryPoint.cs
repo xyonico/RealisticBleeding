@@ -13,12 +13,12 @@ namespace RealisticBleeding
 
 		internal static void OnLoaded(Configuration configuration)
 		{
+			Configuration = configuration;
+			
 			if (_hasLoaded) return;
 
 			_hasLoaded = true;
 			Debug.Log("Realistic Bleeding loaded!");
-
-			Configuration = configuration;
 
 			var harmony = new Harmony(HarmonyID);
 			harmony.PatchAll(typeof(EntryPoint).Assembly);

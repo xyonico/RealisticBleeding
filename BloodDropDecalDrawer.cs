@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using RainyReignGames.RevealMask;
 using ThunderRoad;
 using UnityEngine;
@@ -31,11 +32,16 @@ namespace RealisticBleeding
 			}
 		}
 
-		private static readonly RevealData _revealData = new RevealData
+		private static readonly RevealData[] _revealData =
 		{
-			blendOp = BlendOp.Add
+			new RevealData
+			{
+				blendOp = BlendOp.Add
+			}
 		};
-		
+
+		private static readonly List<Renderer> _renderers = new List<Renderer>(8);
+
 		private BloodDrop _bloodDrop;
 
 		public float SizeMultiplier { get; set; } = 1;
@@ -55,20 +61,29 @@ namespace RealisticBleeding
 					var part = rigid.GetComponent<RagdollPart>();
 					if (part != null)
 					{
-						var renderers = new Renderer[part.renderers.Count];
-						var revealData = new RevealData[part.renderers.Count];
+						_renderers.Clear();
 
-						for (var i = 0; i < part.renderers.Count; i++)
+						foreach (var rendererData in part.renderers)
 						{
-							renderers[i] = part.renderers[i].renderer;
-							revealData[i] = _revealData;
+							var renderer = rendererData.renderer;
+
+							if (renderer == null) continue;
+							if (!renderer.isVisible) continue;
+
+							var nameLower = renderer.name.ToLower();
+
+							if (nameLower.Contains("_vfx")) continue;
+							if (nameLower.Contains("hair")) continue;
+
+							_renderers.Add(renderer);
 						}
 
 						var normal = _bloodDrop.LastSurfaceNormal;
 						var posOffset = normal * 0.07f;
 
 						StartCoroutine(RevealMaskProjection.ProjectAsync(transform.position + posOffset, -normal, Vector3.up, 0.12f,
-							0.005f * SizeMultiplier, ParticleTexture, new Vector4(0.4f, 0, 0, 0), renderers, revealData, null));
+							0.01f * SizeMultiplier * EntryPoint.Configuration.BloodStreakWidthMultiplier, ParticleTexture, new Vector4(0.7f, 0, 0, 0),
+							_renderers.ToArray(), _revealData, null));
 					}
 				}
 			}
