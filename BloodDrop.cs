@@ -24,7 +24,7 @@ namespace RealisticBleeding
 		private float _noiseScale = 20;
 
 		[SerializeField]
-		private float _noiseMaxAngle = 4;
+		private float _noiseMaxAngle = 6;
 
 		private Vector3 _velocity;
 		private SphereCollider _myCollider;
@@ -190,6 +190,8 @@ namespace RealisticBleeding
 
 			if (closestCollider == null) return;
 
+			_distanceTravelledOnSurface = Random.Range(-100f, 100f);
+			
 			AssignNewSurfaceValues(closestPoint, closestCollider);
 		}
 
