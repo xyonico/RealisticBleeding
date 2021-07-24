@@ -59,9 +59,9 @@ namespace RealisticBleeding
 					case RagdollPart.Type.Head:
 						if (damageType != DamageType.Blunt)
 						{
-							durationMultiplier *= 1.5f;
-							frequencyMultiplier *= 2;
-							sizeMultiplier *= 0.7f;
+							durationMultiplier *= 2f;
+							frequencyMultiplier *= 3;
+							sizeMultiplier *= 0.9f;
 						}
 
 						break;
