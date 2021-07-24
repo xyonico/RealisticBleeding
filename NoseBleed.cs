@@ -25,10 +25,23 @@ namespace RealisticBleeding
 				var bleeder = Bleeder.Spawn(centerEyes.TransformPoint(noseOffset), Quaternion.identity, centerEyes);
 				
 				bleeder.Dimensions = Vector2.zero;
-				bleeder.DurationMultiplier = durationMultiplier;
-				bleeder.FrequencyMultiplier = frequencyMultiplier;
-				bleeder.SizeMultiplier = 0.5f;
+				bleeder.DurationMultiplier = 2 * durationMultiplier;
+				bleeder.FrequencyMultiplier = 2 * frequencyMultiplier;
+				bleeder.SizeMultiplier = 0.65f;
 			}
+		}
+
+		public static bool TryGetNosePosition(Creature creature, out Vector3 nosePosition)
+		{
+			nosePosition = Vector3.zero;
+			
+			if (creature == null) return false;
+			var centerEyes = creature.centerEyes;
+
+			if (centerEyes == null) return false;
+
+			nosePosition = centerEyes.TransformPoint(UnderNoseOffset);
+			return true;
 		}
 	}
 }

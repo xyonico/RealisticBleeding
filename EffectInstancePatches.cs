@@ -73,6 +73,17 @@ namespace RealisticBleeding
 				{
 					dimensions = new Vector2(0, Mathf.Lerp(0.06f, 0.12f, intensity));
 				}
+				else if (damageType == DamageType.Blunt)
+				{
+					var creature = ragdollPart.ragdoll.creature;
+					if (ragdollPart.type == RagdollPart.Type.Head && NoseBleed.TryGetNosePosition(creature, out var nosePosition))
+					{
+						if (Vector3.Distance(nosePosition, position) < 0.1f)
+						{
+							NoseBleed.SpawnOn(creature, 1, 1);
+						}
+					}
+				}
 
 				SpawnBleeder(position, rotation, collisionInstance.targetCollider.transform,
 					durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
