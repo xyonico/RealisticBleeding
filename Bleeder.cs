@@ -54,6 +54,8 @@ namespace RealisticBleeding
 				
 				var bloodDrop = SpawnBloodDrop(dropPosition, SizeMultiplier);
 				bloodDrop.AttachToNearestCollider(0.2f);
+				var randomVelocity = Random.insideUnitSphere * 0.05f;
+				bloodDrop.Velocity = randomVelocity;
 			}
 
 			_durationRemaining -= deltaTime;

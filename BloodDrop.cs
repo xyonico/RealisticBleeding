@@ -29,6 +29,12 @@ namespace RealisticBleeding
 
 		public int LayerMask { get; set; } = ~0;
 
+		public Vector3 Velocity
+		{
+			get => _velocity;
+			set => _velocity = value;
+		}
+
 		public Collider SurfaceCollider => _surfaceCollider;
 		public Vector3 LastSurfaceNormal { get; private set; }
 
