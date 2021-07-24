@@ -26,17 +26,6 @@ namespace RealisticBleeding
 
 		internal static void OnUpdate()
 		{
-			if (Input.GetKeyDown(KeyCode.K))
-			{
-				foreach (var texture in Resources.FindObjectsOfTypeAll<Texture>())
-				{
-					if (texture.name.Contains("Particle"))
-					{
-						Debug.Log(texture.name);
-					}
-				}
-			}
-			
 			if (Input.GetKeyDown(KeyCode.T))
 			{
 				var cam = Spectator.local.cam.transform;
