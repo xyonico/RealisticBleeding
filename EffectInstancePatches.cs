@@ -20,7 +20,7 @@ namespace RealisticBleeding
 				if (ragdollPart == null) return;
 
 				var pressureIntensity = Catalog.GetCollisionStayRatio(collisionInstance.pressureRelativeVelocity.magnitude);
-				
+
 				var damageType = collisionInstance.damageStruct.damageType;
 				if (damageType == DamageType.Unknown || damageType == DamageType.Energy) return;
 
@@ -29,35 +29,74 @@ namespace RealisticBleeding
 				const float minPierceIntensity = 0.001f;
 
 				var intensity = Mathf.Max(collisionInstance.intensity, pressureIntensity);
-				
+
 				var minIntensity = damageType == DamageType.Blunt ? minBluntIntensity :
 					damageType == DamageType.Pierce ? minPierceIntensity : minSlashIntensity;
 				if (intensity < minIntensity) return;
 
 				if (damageType == DamageType.Blunt)
 				{
-					intensity *= 0.2f;
+					intensity *= 0.4f;
+				}
+				else if (damageType == DamageType.Pierce)
+				{
+					intensity *= 2.5f;
 				}
 
 				var multiplier = Mathf.Lerp(0.6f, 1.5f, Mathf.InverseLerp(minIntensity, 1, intensity));
 
-				var bleederObject = new GameObject("Bleeder");
-				var bleeder = bleederObject.AddComponent<Bleeder>();
-				bleeder.transform.parent = collisionInstance.targetCollider.transform;
-				bleeder.transform.position = position;
-				bleeder.transform.rotation = rotation;
-				
-				bleeder.DurationMultiplier = multiplier;
-				bleeder.FrequencyMultiplier = multiplier;
-				bleeder.SizeMultiplier = multiplier;
+				var durationMultiplier = multiplier;
+				var frequencyMultiplier = multiplier;
+				var sizeMultiplier = multiplier;
+
+				switch (ragdollPart.type)
+				{
+					case RagdollPart.Type.Neck:
+						durationMultiplier *= 5;
+						frequencyMultiplier *= 5;
+						sizeMultiplier *= 2;
+						break;
+					case RagdollPart.Type.Head:
+						if (damageType != DamageType.Blunt)
+						{
+							durationMultiplier *= 1.5f;
+							frequencyMultiplier *= 2;
+							sizeMultiplier *= 0.7f;
+						}
+
+						break;
+				}
+
+				Vector2? dimensions = null;
 
 				if (damageType == DamageType.Slash)
 				{
-					var dimensions = bleeder.Dimensions;
-					dimensions.x = 0;
-					dimensions.y = Mathf.Lerp(0.06f, 0.12f, intensity);
-					bleeder.Dimensions = dimensions;
+					dimensions = new Vector2(0, Mathf.Lerp(0.06f, 0.12f, intensity));
 				}
+
+				SpawnBleeder(position, rotation, collisionInstance.targetCollider.transform,
+					durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
+			}
+
+			private static Bleeder SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
+				float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2? dimensions = null)
+			{
+				var bleederTransform = new GameObject("Bleeder").transform;
+				var bleeder = bleederTransform.gameObject.AddComponent<Bleeder>();
+				bleederTransform.parent = parent;
+				bleederTransform.position = position;
+				bleederTransform.rotation = rotation;
+
+				bleeder.DurationMultiplier = durationMultiplier;
+				bleeder.FrequencyMultiplier = frequencyMultiplier;
+				bleeder.SizeMultiplier = sizeMultiplier;
+
+				if (dimensions.HasValue)
+				{
+					bleeder.Dimensions = dimensions.Value;
+				}
+
+				return bleeder;
 			}
 		}
 	}

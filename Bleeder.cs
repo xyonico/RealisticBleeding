@@ -47,7 +47,13 @@ namespace RealisticBleeding
 
 				_nextDropTime = Random.Range(FrequencyRangeMin, FrequencyRangeMax) / (FrequencyMultiplier * EntryPoint.Configuration.BloodAmountMultiplier);
 				
-				SpawnDroplet();
+				var randomOffset = new Vector3(Random.Range(-Dimensions.x, Dimensions.x), 0, Random.Range(-Dimensions.y, Dimensions.y));
+				randomOffset *= 0.5f;
+				
+				var dropPosition = transform.TransformPoint(randomOffset);
+				
+				var bloodDrop = SpawnBloodDrop(dropPosition, SizeMultiplier);
+				bloodDrop.AttachToNearestCollider(0.2f);
 			}
 
 			_durationRemaining -= deltaTime;
@@ -58,20 +64,18 @@ namespace RealisticBleeding
 			}
 		}
 
-		private void SpawnDroplet()
+		public static BloodDrop SpawnBloodDrop(Vector3 position, float sizeMultiplier = 1)
 		{
 			var bloodDropObject = new GameObject("Blood Drop");
 			var bloodDrop = bloodDropObject.AddComponent<BloodDrop>();
 			var decalDrawer = bloodDropObject.AddComponent<BloodDropDecalDrawer>();
 
 			bloodDrop.LayerMask = _layerMask;
-			decalDrawer.SizeMultiplier = SizeMultiplier;
+			decalDrawer.SizeMultiplier = sizeMultiplier;
 
-			var randomOffset = new Vector3(Random.Range(-Dimensions.x, Dimensions.x), 0, Random.Range(-Dimensions.y, Dimensions.y));
-			randomOffset *= 0.5f;
+			bloodDrop.transform.position = position;
 
-			bloodDrop.transform.position = transform.TransformPoint(randomOffset);
-			bloodDrop.AttachToNearestCollider(0.2f);
+			return bloodDrop;
 		}
 	}
 }
