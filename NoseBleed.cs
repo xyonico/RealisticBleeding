@@ -27,7 +27,7 @@ namespace RealisticBleeding
 				bleeder.Dimensions = Vector2.zero;
 				bleeder.DurationMultiplier = 2 * durationMultiplier;
 				bleeder.FrequencyMultiplier = 2 * frequencyMultiplier;
-				bleeder.SizeMultiplier = 0.65f;
+				bleeder.SizeMultiplier = 1f;
 			}
 		}
 
