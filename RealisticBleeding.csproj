@@ -123,6 +123,7 @@
         <Compile Include="EffectInstancePatches.cs" />
         <Compile Include="EntryPoint.cs" />
         <Compile Include="LevelModule.cs" />
+        <Compile Include="NoseBleed.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

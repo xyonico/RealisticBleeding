@@ -81,11 +81,7 @@ namespace RealisticBleeding
 			private static Bleeder SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
 				float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2? dimensions = null)
 			{
-				var bleederTransform = new GameObject("Bleeder").transform;
-				var bleeder = bleederTransform.gameObject.AddComponent<Bleeder>();
-				bleederTransform.parent = parent;
-				bleederTransform.position = position;
-				bleederTransform.rotation = rotation;
+				var bleeder = Bleeder.Spawn(position, rotation, parent);
 
 				bleeder.DurationMultiplier = durationMultiplier;
 				bleeder.FrequencyMultiplier = frequencyMultiplier;

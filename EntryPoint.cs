@@ -43,6 +43,9 @@ namespace RealisticBleeding
 					if (rigidbody.TryGetComponent(out RagdollPart part))
 					{
 						SpawnBloodDrop(hit.point, layerMask);
+						var creature = part.ragdoll.creature;
+						
+						//NoseBleed.SpawnOn(creature, 1, 1);
 					}
 				}
 			}

@@ -22,6 +22,17 @@ namespace RealisticBleeding
 		private float _nextDropTime;
 		private float _durationRemaining;
 
+		public static Bleeder Spawn(Vector3 position, Quaternion rotation, Transform parent)
+		{
+			var bleederTransform = new GameObject("Bleeder").transform;
+			var bleeder = bleederTransform.gameObject.AddComponent<Bleeder>();
+			bleederTransform.parent = parent;
+			bleederTransform.position = position;
+			bleederTransform.rotation = rotation;
+
+			return bleeder;
+		}
+
 		private void Awake()
 		{
 			_durationRemaining = Random.Range(DurationRangeMin, DurationRangeMax) * DurationMultiplier * EntryPoint.Configuration.BleedDurationMultiplier;
@@ -33,6 +44,14 @@ namespace RealisticBleeding
 				
 				_hasAssignedLayerMask = true;
 			}
+			
+			_nextDropTime = Random.Range(FrequencyRangeMin, FrequencyRangeMax) / (FrequencyMultiplier * EntryPoint.Configuration.BloodAmountMultiplier);
+			_nextDropTime *= 0.4f; // The first drop should spawn sooner.
+		}
+
+		private void OnDisable()
+		{
+			Destroy(gameObject);
 		}
 
 		private void Update()
@@ -54,7 +73,14 @@ namespace RealisticBleeding
 				
 				var bloodDrop = SpawnBloodDrop(dropPosition, SizeMultiplier);
 				bloodDrop.AttachToNearestCollider(0.2f);
-				var randomVelocity = Random.insideUnitSphere * 0.05f;
+				var randomVelocity = Random.insideUnitSphere * 0.75f;
+				var gravityDir = Physics.gravity.normalized;
+
+				if (Vector3.Dot(randomVelocity.normalized, gravityDir) > 0)
+				{
+					randomVelocity = Vector3.ProjectOnPlane(randomVelocity, gravityDir);
+				}
+				
 				bloodDrop.Velocity = randomVelocity;
 			}
 

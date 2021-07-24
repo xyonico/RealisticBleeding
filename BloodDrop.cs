@@ -20,12 +20,19 @@ namespace RealisticBleeding
 		[SerializeField]
 		private float _maxVelocityToDrip = 0.08f;
 
+		[SerializeField]
+		private float _noiseScale = 20;
+
+		[SerializeField]
+		private float _noiseMaxAngle = 4;
+
 		private Vector3 _velocity;
 		private SphereCollider _myCollider;
 		private bool _isOnSurface;
 		private Collider _surfaceCollider;
 		private Vector3 _surfacePosition;
 		private float _dripTime;
+		private float _distanceTravelledOnSurface;
 
 		public int LayerMask { get; set; } = ~0;
 
@@ -73,6 +80,8 @@ namespace RealisticBleeding
 				{
 					AssignNewSurfaceValues(hit.point, hit.collider);
 
+					_distanceTravelledOnSurface = Random.Range(-100f, 100f);
+
 					return;
 				}
 			}
@@ -81,6 +90,8 @@ namespace RealisticBleeding
 				transform.position = _surfaceCollider.transform.TransformPoint(_surfacePosition);
 
 				var prevPos = transform.position;
+
+				_velocity = RandomizeVector(_velocity);
 				
 				Depenetrate();
 
@@ -98,12 +109,14 @@ namespace RealisticBleeding
 					
 					AssignNewSurfaceValues(closestPoint, _surfaceCollider);
 				}
+
+				var velocity = (prevPos - transform.position).magnitude;
 				
-				var velocitySqr = (prevPos - transform.position).sqrMagnitude;
+				_distanceTravelledOnSurface += velocity * _noiseScale;
 
 				var maxVelocity = _maxVelocityToDrip * Time.deltaTime;
 
-				if (velocitySqr < maxVelocity * maxVelocity)
+				if (velocity < maxVelocity && Vector3.Dot(LastSurfaceNormal, Physics.gravity.normalized) > 0)
 				{
 					_dripTime += Time.deltaTime;
 
@@ -199,12 +212,13 @@ namespace RealisticBleeding
 					out var direction, out var distance))
 				{
 					if (Mathf.Abs(distance) < 0.001f) continue;
-					
+
 					var offset = direction * distance;
 
 					if (!AnyNaN(offset))
 					{
 						transform.position += offset;
+						
 						_velocity = Vector3.ProjectOnPlane(_velocity, direction);
 
 						AssignNewSurfaceValues(transform.position, col);
@@ -224,6 +238,26 @@ namespace RealisticBleeding
 			}
 
 			return any;
+		}
+
+		private Vector3 RandomizeVector(Vector3 vector)
+		{
+			var randomMultiplier = Mathf.Acos(Mathf.Clamp01(Mathf.Abs(Vector3.Dot(LastSurfaceNormal, Physics.gravity.normalized))));
+			randomMultiplier *= Mathf.InverseLerp(0, 0.1f, vector.magnitude);
+
+			var randomRotation = new Vector3
+			{
+				x = Mathf.PerlinNoise(_distanceTravelledOnSurface, 0) * 2f,
+				y = Mathf.PerlinNoise(0, _distanceTravelledOnSurface) * 2f,
+				z = Mathf.PerlinNoise(-_distanceTravelledOnSurface, 0) * 2f
+			};
+
+			randomRotation -= Vector3.one;
+
+			randomRotation *= randomMultiplier;
+			randomRotation *= _noiseMaxAngle;
+					
+			return Quaternion.Euler(randomRotation) * vector;
 		}
 
 		private static bool AnyNaN(Vector3 vector3)
