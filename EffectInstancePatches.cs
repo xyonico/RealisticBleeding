@@ -73,7 +73,7 @@ namespace RealisticBleeding
 				{
 					dimensions = new Vector2(0, Mathf.Lerp(0.06f, 0.12f, intensity));
 				}
-				else if (damageType == DamageType.Blunt)
+				else if (EntryPoint.Configuration.NoseBleedsEnabled && damageType == DamageType.Blunt)
 				{
 					var creature = ragdollPart.ragdoll.creature;
 					if (ragdollPart.type == RagdollPart.Type.Head && NoseBleed.TryGetNosePosition(creature, out var nosePosition))
@@ -84,6 +84,8 @@ namespace RealisticBleeding
 						}
 					}
 				}
+
+				if (!EntryPoint.Configuration.BleedingFromWoundsEnabled) return;
 
 				SpawnBleeder(position, rotation, collisionInstance.targetCollider.transform,
 					durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
