@@ -33,86 +33,86 @@
     </PropertyGroup>
     <ItemGroup>
         <Reference Include="0Harmony, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding\0Harmony.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding\0Harmony.dll</HintPath>
         </Reference>
         <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Assembly-CSharp.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Assembly-CSharp.dll</HintPath>
         </Reference>
         <Reference Include="BetterStreamingAssets, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\BetterStreamingAssets.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\BetterStreamingAssets.dll</HintPath>
         </Reference>
         <Reference Include="RainyReignGames.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\RainyReignGames.Collections.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.Collections.dll</HintPath>
         </Reference>
         <Reference Include="RainyReignGames.Dismemberment, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\RainyReignGames.Dismemberment.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.Dismemberment.dll</HintPath>
         </Reference>
         <Reference Include="RainyReignGames.Expresssions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\RainyReignGames.Expresssions.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.Expresssions.dll</HintPath>
         </Reference>
         <Reference Include="RainyReignGames.MeshUtilities, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\RainyReignGames.MeshUtilities.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.MeshUtilities.dll</HintPath>
         </Reference>
         <Reference Include="RainyReignGames.Reveal, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\RainyReignGames.Reveal.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.Reveal.dll</HintPath>
         </Reference>
         <Reference Include="System" />
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
         <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
         </Reference>
         <Reference Include="Unity.RenderPipelines.Core.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
         </Reference>
         <Reference Include="Unity.RenderPipelines.Core.ShaderLibrary, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
         </Reference>
         <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
         </Reference>
         <Reference Include="Unity.RenderPipelines.Universal.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
         </Reference>
         <Reference Include="Unity.RenderPipelines.Universal.Shaders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
         </Reference>
         <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.ResourceManager.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.ResourceManager.dll</HintPath>
         </Reference>
         <Reference Include="Unity.ScriptableBuildPipeline, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.ScriptableBuildPipeline.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.ScriptableBuildPipeline.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.InputModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.InputModule.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.InputModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine.UnityWebRequestTextureModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
         </Reference>
     </ItemGroup>
     <ItemGroup>
@@ -128,16 +128,9 @@
         <Compile Include="MirrorInvertCullingBugPatch.cs" />
     </ItemGroup>
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-         Other similar extension points exist, see Microsoft.Common.targets.
-    <Target Name="BeforeBuild">
-    </Target>
-    <Target Name="AfterBuild">
-    </Target>
-    -->
 
     <Target Name="AfterBuild">
-        <Copy SourceFiles="$(OutputPath)\RealisticBleeding.dll" DestinationFolder="E:\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding" ContinueOnError="true" />
+        <Copy SourceFiles="$(OutputPath)\RealisticBleeding.dll" DestinationFolder="$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding" ContinueOnError="true" />
     </Target>
 
 </Project>
