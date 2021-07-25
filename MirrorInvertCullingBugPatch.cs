@@ -1,7 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
 using HarmonyLib;
-using RainyReignGames.RevealMask;
 using ThunderRoad;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -10,39 +7,12 @@ namespace RealisticBleeding
 {
 	/// <summary>
 	/// There's a bug in the base game that causes everything in mirrors to have inverted culling if RevealMaskProjection executed commands in that frame.
-	/// This patch fixes that by ensuring the Mirror script doesn't invert culling if RevealMaskProjection executed commands in that frame.
+	/// The reason is because RevealMaskProjection uses CommandBuffer.SetInvertCulling(), while Mirror uses GL.invertCulling.
+	/// It seems if a command buffer with that command is executed for that frame, GL.invertCulling is not used.
+	/// So to fix it, I changed Mirror to also use CommandBuffer.SetInvertCulling() instead of GL.invertCulling.
 	/// </summary>
 	public static class MirrorInvertCullingBugPatch
 	{
-		/*
-		[HarmonyPatch(typeof(RevealMaskProjection), "Project", typeof(Matrix4x4), typeof(Matrix4x4), typeof(Texture), typeof(Vector4), typeof(float),
-			typeof(List<RevealMaterialController>), typeof(RevealData[]), typeof(RevealMaskProjection.OnCompleted))]
-		public static class ProjectPatch
-		{
-			public static bool ShouldInvertThisFrame = true;
-
-			static ProjectPatch()
-			{
-				RenderPipelineManager.endFrameRendering += OnEndFrameRendering;
-			}
-
-			private static void OnEndFrameRendering(ScriptableRenderContext context, Camera[] cameras)
-			{
-				if (!ShouldInvertThisFrame)
-				{
-					Debug.Log("Should invert TRUE");
-					ShouldInvertThisFrame = true;
-				}
-			}
-
-			public static void Postfix()
-			{
-				Debug.Log("Should invert FALSE");
-				ShouldInvertThisFrame = false;
-			}
-		}
-		*/
-
 		[HarmonyPatch(typeof(Mirror), "RenderCam")]
 		public static class RenderCamPatch
 		{
