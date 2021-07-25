@@ -18,6 +18,8 @@ namespace RealisticBleeding
 				var ragdollPart = collisionInstance.damageStruct.hitRagdollPart;
 
 				if (ragdollPart == null) return;
+				
+				var creature = ragdollPart.ragdoll.creature;
 
 				var pressureIntensity = Catalog.GetCollisionStayRatio(collisionInstance.pressureRelativeVelocity.magnitude);
 
@@ -65,6 +67,15 @@ namespace RealisticBleeding
 						}
 
 						break;
+					case RagdollPart.Type.Torso:
+						if (damageType != DamageType.Blunt)
+						{
+							durationMultiplier *= 2f;
+							frequencyMultiplier *= 4;
+							sizeMultiplier *= 1.3f;
+						}
+
+						break;
 				}
 
 				Vector2? dimensions = null;
@@ -73,15 +84,27 @@ namespace RealisticBleeding
 				{
 					dimensions = new Vector2(0, Mathf.Lerp(0.06f, 0.12f, intensity));
 				}
-				else if (EntryPoint.Configuration.NoseBleedsEnabled && damageType == DamageType.Blunt)
+
+				if (damageType == DamageType.Blunt && ragdollPart.type == RagdollPart.Type.Head)
 				{
-					var creature = ragdollPart.ragdoll.creature;
-					if (ragdollPart.type == RagdollPart.Type.Head && NoseBleed.TryGetNosePosition(creature, out var nosePosition))
+					if (EntryPoint.Configuration.NoseBleedsEnabled)
 					{
-						if (Vector3.Distance(nosePosition, position) < 0.1f)
+						if (NoseBleed.TryGetNosePosition(creature, out var nosePosition))
 						{
-							NoseBleed.SpawnOn(creature, 1, 1);
+							if (Vector3.Distance(nosePosition, position) < 0.1f)
+							{
+								NoseBleed.SpawnOn(creature, 1, 1);
+							}
 						}
+					}
+				}
+
+				if (EntryPoint.Configuration.MouthBleedsEnabled && damageType == DamageType.Pierce && ragdollPart.type == RagdollPart.Type.Torso)
+				{
+					if (intensity > 0.2f)
+					{
+						NoseBleed.SpawnOnDelayed(creature, Random.Range(0.8f, 1.7f), 0.1f, 0.05f, 0.4f);
+						MouthBleed.SpawnOnDelayed(creature, Random.Range(0.8f, 1.7f), 1, 1);
 					}
 				}
 
@@ -91,21 +114,19 @@ namespace RealisticBleeding
 					durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
 			}
 
-			private static Bleeder SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
+			private static void SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
 				float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2? dimensions = null)
 			{
-				var bleeder = Bleeder.Spawn(position, rotation, parent);
-
-				bleeder.DurationMultiplier = durationMultiplier;
-				bleeder.FrequencyMultiplier = frequencyMultiplier;
-				bleeder.SizeMultiplier = sizeMultiplier;
-
-				if (dimensions.HasValue)
+				if (Bleeder.TrySpawn(position, rotation, parent, out var bleeder))
 				{
-					bleeder.Dimensions = dimensions.Value;
+					bleeder.DurationMultiplier = durationMultiplier;
+					bleeder.FrequencyMultiplier = frequencyMultiplier;
+					bleeder.SizeMultiplier = sizeMultiplier;
+					if (dimensions.HasValue)
+					{
+						bleeder.Dimensions = dimensions.Value;
+					}
 				}
-
-				return bleeder;
 			}
 		}
 	}

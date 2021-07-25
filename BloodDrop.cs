@@ -6,14 +6,15 @@ namespace RealisticBleeding
 {
 	public class BloodDrop : MonoBehaviour
 	{
-		private static readonly List<BloodDrop> _activeBloodDrops = new List<BloodDrop>();
+		internal static readonly List<BloodDrop> ActiveBloodDrops = new List<BloodDrop>();
+		
 		private static readonly Collider[] _colliders = new Collider[16];
 
 		[SerializeField]
 		private float _radius = 0.003f;
 
 		[SerializeField]
-		private float _surfaceDrag = 40;
+		private float _surfaceDrag = 55;
 
 		[SerializeField]
 		private Vector2 _dripDurationRequiredRange = new Vector2(0.25f, 0.75f);
@@ -39,6 +40,7 @@ namespace RealisticBleeding
 
 		public LayerMask SurfaceLayerMask { get; set; } = ~0;
 		public LayerMask EnvironmentLayerMask { get; set; } = LayerMask.GetMask(LayerName.Default.ToString());
+		public bool HasUpdated { get; set; } = true;
 
 		private EffectData _bloodDropDecalData;
 
@@ -69,114 +71,111 @@ namespace RealisticBleeding
 
 			_dripDurationRequired = Random.Range(_dripDurationRequiredRange.x, _dripDurationRequiredRange.y);
 
-			Destroy(gameObject, 7);
+			Destroy(gameObject, Random.Range(5f, 8f));
 
-			_activeBloodDrops.Add(this);
-
-			if (_activeBloodDrops.Count >= EntryPoint.Configuration.MaxActiveBloodDrips)
-			{
-				var randomIndex = Random.Range(1, _activeBloodDrops.Count);
-				var randomDrop = _activeBloodDrops[randomIndex];
-				_activeBloodDrops.RemoveAt(randomIndex);
-				Destroy(randomDrop.gameObject);
-			}
+			ActiveBloodDrops.Insert(Random.Range(0, ActiveBloodDrops.Count), this);
 		}
 
 		private void OnDestroy()
 		{
-			_activeBloodDrops.Remove(this);
+			ActiveBloodDrops.Remove(this);
 		}
 
 		private void FixedUpdate()
 		{
+			if (_isOnSurface) return;
+			
 			AddGravityForce();
+			
+			var combinedLayerMask = SurfaceLayerMask | EnvironmentLayerMask;
 
-			if (!_isOnSurface)
+			if (Physics.SphereCast(transform.position, _radius, _velocity.normalized, out var hit, _velocity.magnitude * Time.deltaTime,
+				combinedLayerMask,
+				QueryTriggerInteraction.Ignore))
 			{
-				var combinedLayerMask = SurfaceLayerMask | EnvironmentLayerMask;
-
-				if (Physics.SphereCast(transform.position, _radius, _velocity.normalized, out var hit, _velocity.magnitude * Time.deltaTime,
-					combinedLayerMask,
-					QueryTriggerInteraction.Ignore))
+				if (EnvironmentLayerMask.Contains(hit.collider.gameObject.layer))
 				{
-					if (EnvironmentLayerMask.Contains(hit.collider.gameObject.layer))
-					{
-						OnCollidedWithEnvironment(hit);
-
-						return;
-					}
-
-					AssignNewSurfaceValues(hit.point, hit.collider);
-
-					_distanceTravelledOnSurface = Random.Range(-100f, 100f);
-
-					_renderer.enabled = false;
+					OnCollidedWithEnvironment(hit);
 
 					return;
 				}
 
-				transform.forward = _velocity;
-				var size = Mathf.Lerp(1, 3.5f, Mathf.InverseLerp(0, 4, _velocity.magnitude));
-				_renderer.transform.localScale = new Vector3(1, 1, size);
-			}
-			else
-			{
-				transform.position = _surfaceCollider.transform.TransformPoint(_surfacePosition);
+				AssignNewSurfaceValues(hit.point, hit.collider);
 
-				var prevPos = transform.position;
+				_distanceTravelledOnSurface = Random.Range(-100f, 100f);
 
-				_velocity = RandomizeVector(_velocity);
-
-				Depenetrate();
-
-				_velocity *= 1 - Time.deltaTime * _surfaceDrag;
-
-				var newPos = transform.position + _velocity * Time.deltaTime;
-
-				transform.position = newPos;
-
-				if (!Depenetrate())
-				{
-					var closestPoint = _surfaceCollider.ClosestPoint(newPos);
-
-					LastSurfaceNormal = (newPos - closestPoint).normalized;
-
-					AssignNewSurfaceValues(closestPoint, _surfaceCollider);
-				}
-
-				var velocity = (prevPos - transform.position).magnitude;
-
-				_distanceTravelledOnSurface += velocity * _noiseScale;
-
-				var maxVelocity = _maxVelocityToDrip * Time.deltaTime;
-
-				if (velocity < maxVelocity && Vector3.Dot(LastSurfaceNormal, Physics.gravity.normalized) > 0)
-				{
-					_dripTime += Time.deltaTime;
-
-					if (_dripTime >= _dripDurationRequired)
-					{
-						_dripTime = 0;
-						_isOnSurface = false;
-						_renderer.enabled = true;
-
-						var rb = _surfaceCollider.attachedRigidbody;
-						_velocity = rb ? rb.GetPointVelocity(transform.position) : Vector3.zero;
-
-						_surfaceCollider = null;
-					}
-				}
-				else
-				{
-					_dripTime = 0;
-
-					_renderer.enabled = false;
-				}
+				_renderer.enabled = false;
 
 				return;
 			}
 
+			transform.forward = _velocity;
+			var size = Mathf.Lerp(1, 3.5f, Mathf.InverseLerp(0, 4, _velocity.magnitude));
+			_renderer.transform.localScale = new Vector3(1, 1, size);
+			
 			transform.position += _velocity * Time.deltaTime;
+		}
+
+		public bool DoUpdate()
+		{
+			if (!_isOnSurface) return false;
+
+			AddGravityForce();
+
+			transform.position = _surfaceCollider.transform.TransformPoint(_surfacePosition);
+
+			var prevPos = transform.position;
+
+			_velocity = RandomizeVector(_velocity);
+
+			Depenetrate();
+
+			_velocity *= 1 - Time.deltaTime * _surfaceDrag;
+
+			var newPos = transform.position + _velocity * Time.deltaTime;
+
+			transform.position = newPos;
+
+			if (!Depenetrate())
+			{
+				var closestPoint = _surfaceCollider.ClosestPoint(newPos);
+
+				LastSurfaceNormal = (newPos - closestPoint).normalized;
+
+				AssignNewSurfaceValues(closestPoint, _surfaceCollider);
+			}
+
+			var velocity = (prevPos - transform.position).magnitude;
+
+			_distanceTravelledOnSurface += velocity * _noiseScale;
+
+			var maxVelocity = _maxVelocityToDrip * Time.deltaTime;
+
+			if (velocity < maxVelocity && Vector3.Dot(LastSurfaceNormal, Physics.gravity.normalized) > 0)
+			{
+				_dripTime += Time.deltaTime;
+
+				if (_dripTime >= _dripDurationRequired)
+				{
+					_dripTime = 0;
+					_isOnSurface = false;
+					_renderer.enabled = true;
+
+					var rb = _surfaceCollider.attachedRigidbody;
+					_velocity = rb ? rb.GetPointVelocity(transform.position) : Vector3.zero;
+
+					_surfaceCollider = null;
+				}
+
+				return false;
+			}
+
+			_dripTime = 0;
+			_renderer.enabled = false;
+				
+			HasUpdated = true;
+
+			return true;
 		}
 
 		private void AssignNewSurfaceValues(Vector3 point, Collider surfaceCollider)

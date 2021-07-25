@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using ThunderRoad;
 using UnityEngine;
 
@@ -5,6 +6,8 @@ namespace RealisticBleeding
 {
 	public class Bleeder : MonoBehaviour
 	{
+		private static readonly HashSet<Bleeder> _bleeders = new HashSet<Bleeder>();
+		
 		private static bool _hasAssignedLayerMask;
 		private static int _layerMask;
 
@@ -33,8 +36,32 @@ namespace RealisticBleeding
 			return bleeder;
 		}
 
+		/// <summary>
+		/// Same as Spawn, but it won't spawn the bleeder if there's already one too close.
+		/// </summary>
+		public static bool TrySpawn(Vector3 position, Quaternion rotation, Transform parent, out Bleeder bleeder)
+		{
+			foreach (var other in _bleeders)
+			{
+				var sqrDistance = (position - other.transform.position).sqrMagnitude;
+
+				const float minDistanceBetweenBleeders = 0.01f;
+
+				if (sqrDistance < minDistanceBetweenBleeders * minDistanceBetweenBleeders)
+				{
+					bleeder = null;
+					return false;
+				}
+			}
+
+			bleeder = Spawn(position, rotation, parent);
+			return true;
+		}
+
 		private void Awake()
 		{
+			_bleeders.Add(this);
+			
 			_durationRemaining = Random.Range(DurationRangeMin, DurationRangeMax) * DurationMultiplier * EntryPoint.Configuration.BleedDurationMultiplier;
 			
 			if (!_hasAssignedLayerMask)
@@ -52,6 +79,11 @@ namespace RealisticBleeding
 		private void OnDisable()
 		{
 			Destroy(gameObject);
+		}
+
+		private void OnDestroy()
+		{
+			_bleeders.Remove(this);
 		}
 
 		private void Update()

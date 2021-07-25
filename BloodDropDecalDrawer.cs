@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using RainyReignGames.RevealMask;
 using ThunderRoad;
 using UnityEngine;
@@ -40,7 +41,7 @@ namespace RealisticBleeding
 			}
 		};
 
-		private static readonly List<Renderer> _renderers = new List<Renderer>(8);
+		private static readonly List<RevealMaterialController> _revealMaterialControllers = new List<RevealMaterialController>(16);
 
 		private BloodDrop _bloodDrop;
 
@@ -53,39 +54,49 @@ namespace RealisticBleeding
 
 		private void Update()
 		{
+			if (!_bloodDrop.HasUpdated) return;
+			
 			if (_bloodDrop.SurfaceCollider != null)
 			{
-				var rigid = _bloodDrop.SurfaceCollider.attachedRigidbody;
-				if (rigid != null)
+				var size = 0.01f * SizeMultiplier * EntryPoint.Configuration.BloodStreakWidthMultiplier;
+				
+				_revealMaterialControllers.Clear();
+				var col = _bloodDrop.SurfaceCollider;
+
+				var rb = col.attachedRigidbody;
+				if (!rb) return;
+				
+				if (!rb.TryGetComponent(out RagdollPart ragdollPart)) return;
+
+				foreach (var rendererData in ragdollPart.renderers)
 				{
-					var part = rigid.GetComponent<RagdollPart>();
-					if (part != null)
+					if (!rendererData.revealDecal) continue;
+
+					var revealMaterialController = rendererData.revealDecal.revealMaterialController;
+						
+					if (revealMaterialController)
 					{
-						_renderers.Clear();
+						var renderer = rendererData.renderer;
+						
+						if (!renderer.isVisible) continue;
+						var name = renderer.name;
 
-						foreach (var rendererData in part.renderers)
-						{
-							var renderer = rendererData.renderer;
-
-							if (renderer == null) continue;
-							if (!renderer.isVisible) continue;
-
-							var nameLower = renderer.name.ToLower();
-
-							if (nameLower.Contains("_vfx")) continue;
-							if (nameLower.Contains("hair")) continue;
-
-							_renderers.Add(renderer);
-						}
-
-						var normal = _bloodDrop.LastSurfaceNormal;
-						var posOffset = normal * 0.07f;
-
-						StartCoroutine(RevealMaskProjection.ProjectAsync(transform.position + posOffset, -normal, Vector3.up, 0.12f,
-							0.01f * SizeMultiplier * EntryPoint.Configuration.BloodStreakWidthMultiplier, ParticleTexture, new Vector4(0.7f, 0, 0, 0),
-							_renderers.ToArray(), _revealData, null));
+						var culture = CultureInfo.InvariantCulture;
+						if (culture.CompareInfo.IndexOf(name, "vfx", CompareOptions.IgnoreCase) >= 0) continue;
+						if (culture.CompareInfo.IndexOf(name, "hair", CompareOptions.IgnoreCase) >= 0) continue;
+						
+						_revealMaterialControllers.Add(revealMaterialController);
 					}
 				}
+				
+				var normal = _bloodDrop.LastSurfaceNormal;
+				var posOffset = normal * 0.07f;
+
+				StartCoroutine(RevealMaskProjection.ProjectAsync(transform.position + posOffset, -normal, Vector3.up, 0.12f,
+					size, ParticleTexture, new Vector4(0.7f, 0, 0, 0),
+					_revealMaterialControllers, _revealData, null));
+
+				_bloodDrop.HasUpdated = false;
 			}
 		}
 	}
