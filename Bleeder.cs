@@ -98,7 +98,7 @@ namespace RealisticBleeding
 			var bloodDrop = bloodDropObject.AddComponent<BloodDrop>();
 			var decalDrawer = bloodDropObject.AddComponent<BloodDropDecalDrawer>();
 
-			bloodDrop.LayerMask = _layerMask;
+			bloodDrop.SurfaceLayerMask = _layerMask;
 			decalDrawer.SizeMultiplier = sizeMultiplier;
 
 			bloodDrop.transform.position = position;

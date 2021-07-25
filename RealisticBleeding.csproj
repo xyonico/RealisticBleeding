@@ -60,6 +60,9 @@
         <Reference Include="System.Core" />
         <Reference Include="System.Data" />
         <Reference Include="System.Xml" />
+        <Reference Include="Unity.Addressables, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+            <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.Addressables.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
         </Reference>
@@ -119,6 +122,7 @@
         <Compile Include="Bleeder.cs" />
         <Compile Include="BloodDrop.cs" />
         <Compile Include="BloodDropDecalDrawer.cs" />
+        <Compile Include="BloodMaterial.cs" />
         <Compile Include="Configuration.cs" />
         <Compile Include="EffectInstancePatches.cs" />
         <Compile Include="EntryPoint.cs" />

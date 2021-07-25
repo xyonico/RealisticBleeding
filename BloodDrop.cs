@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using ThunderRoad;
 using UnityEngine;
 
 namespace RealisticBleeding
@@ -9,14 +10,14 @@ namespace RealisticBleeding
 		private static readonly Collider[] _colliders = new Collider[16];
 
 		[SerializeField]
-		private float _radius = 0.005f;
+		private float _radius = 0.003f;
 
 		[SerializeField]
 		private float _surfaceDrag = 40;
 
 		[SerializeField]
-		private float _dripDurationRequired = 1f;
-		
+		private Vector2 _dripDurationRequiredRange = new Vector2(0.25f, 0.75f);
+
 		[SerializeField]
 		private float _maxVelocityToDrip = 0.08f;
 
@@ -33,8 +34,13 @@ namespace RealisticBleeding
 		private Vector3 _surfacePosition;
 		private float _dripTime;
 		private float _distanceTravelledOnSurface;
+		private Renderer _renderer;
+		private float _dripDurationRequired;
 
-		public int LayerMask { get; set; } = ~0;
+		public LayerMask SurfaceLayerMask { get; set; } = ~0;
+		public LayerMask EnvironmentLayerMask { get; set; } = LayerMask.GetMask(LayerName.Default.ToString());
+
+		private EffectData _bloodDropDecalData;
 
 		public Vector3 Velocity
 		{
@@ -48,11 +54,23 @@ namespace RealisticBleeding
 		private void Awake()
 		{
 			_myCollider = gameObject.AddComponent<SphereCollider>();
-			_myCollider.radius = _radius;
 			_myCollider.isTrigger = true;
-			
+			transform.localScale = new Vector3(_radius * 2, _radius * 2, _radius * 2);
+
+			var rendererObject = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+			var rendererTransform = rendererObject.transform;
+			rendererTransform.parent = transform;
+			rendererTransform.localPosition = Vector3.zero;
+			rendererTransform.localScale = Vector3.one;
+
+			Destroy(rendererObject.GetComponent<Collider>());
+			_renderer = rendererObject.GetComponent<Renderer>();
+			_renderer.sharedMaterial = BloodMaterial.Material;
+
+			_dripDurationRequired = Random.Range(_dripDurationRequiredRange.x, _dripDurationRequiredRange.y);
+
 			Destroy(gameObject, 7);
-			
+
 			_activeBloodDrops.Add(this);
 
 			if (_activeBloodDrops.Count >= EntryPoint.Configuration.MaxActiveBloodDrips)
@@ -75,15 +93,31 @@ namespace RealisticBleeding
 
 			if (!_isOnSurface)
 			{
-				if (Physics.SphereCast(transform.position, _radius, _velocity.normalized, out var hit, _velocity.magnitude, LayerMask,
+				var combinedLayerMask = SurfaceLayerMask | EnvironmentLayerMask;
+
+				if (Physics.SphereCast(transform.position, _radius, _velocity.normalized, out var hit, _velocity.magnitude * Time.deltaTime,
+					combinedLayerMask,
 					QueryTriggerInteraction.Ignore))
 				{
+					if (EnvironmentLayerMask.Contains(hit.collider.gameObject.layer))
+					{
+						OnCollidedWithEnvironment(hit);
+
+						return;
+					}
+
 					AssignNewSurfaceValues(hit.point, hit.collider);
 
 					_distanceTravelledOnSurface = Random.Range(-100f, 100f);
 
+					_renderer.enabled = false;
+
 					return;
 				}
+
+				transform.forward = _velocity;
+				var size = Mathf.Lerp(1, 3.5f, Mathf.InverseLerp(0, 4, _velocity.magnitude));
+				_renderer.transform.localScale = new Vector3(1, 1, size);
 			}
 			else
 			{
@@ -92,7 +126,7 @@ namespace RealisticBleeding
 				var prevPos = transform.position;
 
 				_velocity = RandomizeVector(_velocity);
-				
+
 				Depenetrate();
 
 				_velocity *= 1 - Time.deltaTime * _surfaceDrag;
@@ -106,12 +140,12 @@ namespace RealisticBleeding
 					var closestPoint = _surfaceCollider.ClosestPoint(newPos);
 
 					LastSurfaceNormal = (newPos - closestPoint).normalized;
-					
+
 					AssignNewSurfaceValues(closestPoint, _surfaceCollider);
 				}
 
 				var velocity = (prevPos - transform.position).magnitude;
-				
+
 				_distanceTravelledOnSurface += velocity * _noiseScale;
 
 				var maxVelocity = _maxVelocityToDrip * Time.deltaTime;
@@ -124,12 +158,19 @@ namespace RealisticBleeding
 					{
 						_dripTime = 0;
 						_isOnSurface = false;
+						_renderer.enabled = true;
+
+						var rb = _surfaceCollider.attachedRigidbody;
+						_velocity = rb ? rb.GetPointVelocity(transform.position) : Vector3.zero;
+
 						_surfaceCollider = null;
 					}
 				}
 				else
 				{
 					_dripTime = 0;
+
+					_renderer.enabled = false;
 				}
 
 				return;
@@ -156,7 +197,7 @@ namespace RealisticBleeding
 		{
 			var position = transform.position;
 
-			var count = Physics.OverlapSphereNonAlloc(position, maxRadius, _colliders, LayerMask, QueryTriggerInteraction.Ignore);
+			var count = Physics.OverlapSphereNonAlloc(position, maxRadius, _colliders, SurfaceLayerMask, QueryTriggerInteraction.Ignore);
 
 			var closestDistanceSqr = float.MaxValue;
 			var closestPoint = position;
@@ -179,7 +220,7 @@ namespace RealisticBleeding
 						point = position + direction * distance;
 					}
 				}
-				
+
 				if (distanceSqr < closestDistanceSqr)
 				{
 					closestDistanceSqr = distanceSqr;
@@ -190,8 +231,9 @@ namespace RealisticBleeding
 
 			if (closestCollider == null) return;
 
+			_renderer.enabled = false;
 			_distanceTravelledOnSurface = Random.Range(-100f, 100f);
-			
+
 			AssignNewSurfaceValues(closestPoint, closestCollider);
 		}
 
@@ -199,7 +241,7 @@ namespace RealisticBleeding
 		{
 			var any = false;
 
-			var count = Physics.OverlapSphereNonAlloc(transform.position, _radius, _colliders, LayerMask, QueryTriggerInteraction.Ignore);
+			var count = Physics.OverlapSphereNonAlloc(transform.position, _radius, _colliders, SurfaceLayerMask, QueryTriggerInteraction.Ignore);
 
 			for (var i = 0; i < count; i++)
 			{
@@ -220,7 +262,7 @@ namespace RealisticBleeding
 					if (!AnyNaN(offset))
 					{
 						transform.position += offset;
-						
+
 						_velocity = Vector3.ProjectOnPlane(_velocity, direction);
 
 						AssignNewSurfaceValues(transform.position, col);
@@ -229,7 +271,7 @@ namespace RealisticBleeding
 					}
 				}
 			}
-			
+
 			if (any)
 			{
 				var velocityDir = _velocity.normalized;
@@ -258,8 +300,31 @@ namespace RealisticBleeding
 
 			randomRotation *= randomMultiplier;
 			randomRotation *= _noiseMaxAngle;
-					
+
 			return Quaternion.Euler(randomRotation) * vector;
+		}
+
+		private void OnCollidedWithEnvironment(RaycastHit hit)
+		{
+			Destroy(gameObject);
+			
+			if (_bloodDropDecalData == null)
+			{
+				_bloodDropDecalData = Catalog.GetData<EffectData>("DropBlood");
+			}
+
+			var rotation = Quaternion.AngleAxis(Random.Range(0f, 360f), hit.normal) * Quaternion.LookRotation(hit.normal);
+			var instance = _bloodDropDecalData.Spawn(hit.point, rotation);
+			instance.Play();
+
+			if (instance.effects == null || instance.effects.Count == 0) return;
+			
+			var effectDecal = instance.effects[0] as EffectDecal;
+			
+			if (effectDecal == null) return;
+			
+			const float decalScale = 0.1f;
+			effectDecal.meshRenderer.transform.localScale = new Vector3(decalScale, decalScale, decalScale);
 		}
 
 		private static bool AnyNaN(Vector3 vector3)
