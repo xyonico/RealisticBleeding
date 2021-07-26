@@ -10,14 +10,14 @@ namespace RealisticBleeding
 		private static readonly Vector3 LowerLipOffset = new Vector3(-0.12f, 0, 0.045f);
 		private static readonly Quaternion RotationOffset = Quaternion.Euler(0, -55f, -90);
 
-		private static readonly HashSet<CreatureSpeak> _animatingCreatures = new HashSet<CreatureSpeak>();
+		private static readonly HashSet<Creature> _bleedingCreatures = new HashSet<Creature>();
 
 		public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)
 		{
 			if (creature == null) return;
 			if (creature.speak == null) return;
 
-			if (!_animatingCreatures.Add(creature.speak)) return;
+			if (!_bleedingCreatures.Add(creature)) return;
 
 			var jawBone = creature.speak.jaw;
 
@@ -28,7 +28,7 @@ namespace RealisticBleeding
 			bleeder.FrequencyMultiplier = frequencyMultiplier * 4f;
 			bleeder.SizeMultiplier = sizeMultiplier;
 
-			creature.speak.StartCoroutine(OpenMouthRoutine(creature.speak));
+			creature.speak.StartCoroutine(DelayedRemoveCreature(creature, 4));
 		}
 
 		public static void SpawnOnDelayed(Creature creature, float delay, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)
@@ -45,25 +45,12 @@ namespace RealisticBleeding
 
 			SpawnOn(creature, durationMultiplier, frequencyMultiplier, sizeMultiplier);
 		}
-
-		private static IEnumerator OpenMouthRoutine(CreatureSpeak speak)
+		
+		private static IEnumerator DelayedRemoveCreature(Creature creature, float delay)
 		{
-			speak.jawTargetWeight = 0.15f;
-			speak.jawCurrentWeight = 0.00001f;
+			yield return new WaitForSeconds(delay);
 
-			var prevSpeed = speak.lipSyncSpeed;
-
-			speak.lipSyncSpeed = 0.2f;
-
-			yield return new WaitForSeconds(3);
-
-			speak.jawTargetWeight = 0;
-
-			yield return new WaitForSeconds(1.5f);
-
-			speak.lipSyncSpeed = prevSpeed;
-
-			_animatingCreatures.Remove(speak);
+			_bleedingCreatures.Remove(creature);
 		}
 	}
 }
