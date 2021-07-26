@@ -14,7 +14,7 @@ namespace RealisticBleeding
 		private float _radius = 0.003f;
 
 		[SerializeField]
-		private float _surfaceDrag = 55;
+		private float _surfaceDrag = 45;
 
 		[SerializeField]
 		private Vector2 _dripDurationRequiredRange = new Vector2(0.25f, 0.75f);
@@ -75,6 +75,11 @@ namespace RealisticBleeding
 
 			ActiveBloodDrops.Insert(Random.Range(0, ActiveBloodDrops.Count), this);
 		}
+		
+		private void OnDisable()
+		{
+			Destroy(gameObject);
+		}
 
 		private void OnDestroy()
 		{
@@ -130,7 +135,7 @@ namespace RealisticBleeding
 
 			Depenetrate();
 
-			_velocity *= 1 - Time.deltaTime * _surfaceDrag;
+			_velocity *= 1 - Time.deltaTime * _surfaceDrag * EntryPoint.Configuration.BloodSurfaceFrictionMultiplier;
 
 			var newPos = transform.position + _velocity * Time.deltaTime;
 
@@ -165,6 +170,8 @@ namespace RealisticBleeding
 					_velocity = rb ? rb.GetPointVelocity(transform.position) : Vector3.zero;
 
 					_surfaceCollider = null;
+
+					transform.parent = null;
 				}
 
 				return false;
@@ -182,7 +189,8 @@ namespace RealisticBleeding
 		{
 			_isOnSurface = true;
 			_surfaceCollider = surfaceCollider;
-
+			
+			transform.parent = surfaceCollider.transform;
 			transform.position = point;
 			_surfacePosition = _surfaceCollider.transform.InverseTransformPoint(point);
 		}
