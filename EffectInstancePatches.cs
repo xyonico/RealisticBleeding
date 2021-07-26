@@ -27,7 +27,7 @@ namespace RealisticBleeding
 				if (damageType == DamageType.Unknown || damageType == DamageType.Energy) return;
 
 				const float minBluntIntensity = 0.45f;
-				const float minSlashIntensity = 0.1f;
+				const float minSlashIntensity = 0.01f;
 				const float minPierceIntensity = 0.001f;
 
 				var intensity = Mathf.Max(collisionInstance.intensity, pressureIntensity);
