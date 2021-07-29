@@ -9,8 +9,9 @@ namespace RealisticBleeding
 	{
 		private static readonly Vector3 UnderNoseOffset = new Vector3(0, -0.055f, 0.046f);
 		private const float NostrilOffset = 0.008f;
-		
-		private static readonly HashSet<Creature> _bleedingCreatures = new HashSet<Creature>();
+
+		private static readonly Dictionary<Creature, (Bleeder left, Bleeder right, Coroutine coroutine)> _bleedingCreatures =
+			new Dictionary<Creature, (Bleeder, Bleeder, Coroutine)>();
 		
 		public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)
 		{
@@ -19,12 +20,25 @@ namespace RealisticBleeding
 
 			if (centerEyes == null) return;
 
-			if (!_bleedingCreatures.Add(creature)) return;
+			if (_bleedingCreatures.TryGetValue(creature, out var bleeds))
+			{
+				if (frequencyMultiplier * 2 > bleeds.left.FrequencyMultiplier)
+				{
+					Object.Destroy(bleeds.left.gameObject);
+					Object.Destroy(bleeds.right.gameObject);
+					
+					creature.StopCoroutine(bleeds.coroutine);
+				}
+				else
+				{
+					return;
+				}
+			}
 
-			SpawnNoseBleeder(NostrilOffset); // right nostril
-			SpawnNoseBleeder(-NostrilOffset); // left nostril
+			var left = SpawnNoseBleeder(-NostrilOffset); // left nostril
+			var right = SpawnNoseBleeder(NostrilOffset); // right nostril
 
-			void SpawnNoseBleeder(float nostrilOffset)
+			Bleeder SpawnNoseBleeder(float nostrilOffset)
 			{
 				var noseOffset = UnderNoseOffset;
 				noseOffset.x = nostrilOffset;
@@ -34,9 +48,13 @@ namespace RealisticBleeding
 				bleeder.DurationMultiplier = 2 * durationMultiplier;
 				bleeder.FrequencyMultiplier = 2 * frequencyMultiplier;
 				bleeder.SizeMultiplier = sizeMultiplier;
+
+				return bleeder;
 			}
 
-			creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
+			var coroutine = creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
+			
+			_bleedingCreatures.Add(creature, (left, right, coroutine));
 		}
 
 		public static void SpawnOnDelayed(Creature creature, float delay, float durationMultiplier, float frequencyMultiplier,

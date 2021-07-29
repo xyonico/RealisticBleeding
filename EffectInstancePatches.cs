@@ -38,7 +38,7 @@ namespace RealisticBleeding
 
 				if (damageType == DamageType.Blunt)
 				{
-					intensity *= 0.4f;
+					intensity *= 0.5f;
 				}
 				else if (damageType == DamageType.Pierce)
 				{
@@ -94,7 +94,14 @@ namespace RealisticBleeding
 							if (Vector3.Distance(nosePosition, position) < 0.1f)
 							{
 								NoseBleed.SpawnOn(creature, 1, 1);
+
+								return;
 							}
+						}
+
+						if (collisionInstance.intensity > 0.5f)
+						{
+							NoseBleed.SpawnOnDelayed(creature, Random.Range(1f, 2), intensity, intensity, Mathf.Max(0.3f, intensity));
 						}
 					}
 				}
