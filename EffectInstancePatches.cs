@@ -56,7 +56,7 @@ namespace RealisticBleeding
 					case RagdollPart.Type.Neck:
 						durationMultiplier *= 5;
 						frequencyMultiplier *= 5;
-						sizeMultiplier *= 2;
+						sizeMultiplier *= 1.2f;
 						break;
 					case RagdollPart.Type.Head:
 						if (damageType != DamageType.Blunt)
@@ -72,7 +72,6 @@ namespace RealisticBleeding
 						{
 							durationMultiplier *= 2f;
 							frequencyMultiplier *= 4;
-							sizeMultiplier *= 1.3f;
 						}
 
 						break;
@@ -116,6 +115,8 @@ namespace RealisticBleeding
 				}
 
 				if (!EntryPoint.Configuration.BleedingFromWoundsEnabled) return;
+
+				sizeMultiplier *= 0.75f;
 
 				SpawnBleeder(position, rotation, collisionInstance.targetCollider.transform,
 					durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);

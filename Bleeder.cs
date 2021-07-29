@@ -16,9 +16,16 @@ namespace RealisticBleeding
 		private const float DurationRangeMin = 4f;
 		private const float DurationRangeMax = 10f;
 
+		private float _sizeMultiplier = 1;
+		
 		public float FrequencyMultiplier { get; set; } = 1;
 		public float DurationMultiplier { get; set; } = 1;
-		public float SizeMultiplier { get; set; } = 1;
+
+		public float SizeMultiplier
+		{
+			get => _sizeMultiplier;
+			set => _sizeMultiplier = Mathf.Clamp(value, 0.1f, 4f);
+		}
 		public Vector2 Dimensions { get; set; } = new Vector2(0.01f, 0.01f);
 
 		private float _timer;

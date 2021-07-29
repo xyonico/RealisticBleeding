@@ -26,7 +26,7 @@ namespace RealisticBleeding
 			bleeder.Dimensions = new Vector2(0.05f, 0);
 			bleeder.DurationMultiplier = durationMultiplier * 0.3f;
 			bleeder.FrequencyMultiplier = frequencyMultiplier * 4f;
-			bleeder.SizeMultiplier = sizeMultiplier;
+			bleeder.SizeMultiplier = sizeMultiplier * 0.75f;
 
 			creature.speak.StartCoroutine(DelayedRemoveCreature(creature, 4));
 		}
