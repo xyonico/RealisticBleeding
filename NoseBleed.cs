@@ -1,5 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
+using DefaultEcs;
+using RealisticBleeding.Components;
 using ThunderRoad;
 using UnityEngine;
 
@@ -10,8 +12,8 @@ namespace RealisticBleeding
 		private static readonly Vector3 UnderNoseOffset = new Vector3(0, -0.055f, 0.046f);
 		private const float NostrilOffset = 0.008f;
 
-		private static readonly Dictionary<Creature, (Bleeder left, Bleeder right, Coroutine coroutine)> _bleedingCreatures =
-			new Dictionary<Creature, (Bleeder, Bleeder, Coroutine)>();
+		private static readonly Dictionary<Creature, (Entity left, Entity right, Coroutine coroutine)> _bleedingCreatures =
+			new Dictionary<Creature, (Entity, Entity, Coroutine)>();
 		
 		public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)
 		{
@@ -22,10 +24,11 @@ namespace RealisticBleeding
 
 			if (_bleedingCreatures.TryGetValue(creature, out var bleeds))
 			{
-				if (frequencyMultiplier * 2 > bleeds.left.FrequencyMultiplier)
+				var bleeder = bleeds.left.Get<Bleeder>();
+				if (frequencyMultiplier * 2 > bleeder.FrequencyMultiplier)
 				{
-					Object.Destroy(bleeds.left.gameObject);
-					Object.Destroy(bleeds.right.gameObject);
+					bleeds.left.Dispose();
+					bleeds.right.Dispose();
 					
 					creature.StopCoroutine(bleeds.coroutine);
 				}
@@ -38,16 +41,12 @@ namespace RealisticBleeding
 			var left = SpawnNoseBleeder(-NostrilOffset); // left nostril
 			var right = SpawnNoseBleeder(NostrilOffset); // right nostril
 
-			Bleeder SpawnNoseBleeder(float nostrilOffset)
+			Entity SpawnNoseBleeder(float nostrilOffset)
 			{
 				var noseOffset = UnderNoseOffset;
 				noseOffset.x = nostrilOffset;
-				var bleeder = Bleeder.Spawn(centerEyes.TransformPoint(noseOffset), centerEyes.rotation, centerEyes);
-				
-				bleeder.Dimensions = Vector2.zero;
-				bleeder.DurationMultiplier = 2 * durationMultiplier;
-				bleeder.FrequencyMultiplier = 2 * frequencyMultiplier;
-				bleeder.SizeMultiplier = sizeMultiplier;
+				var bleeder = Bleeder.Spawn(centerEyes, centerEyes.TransformPoint(noseOffset), centerEyes.rotation, Vector2.zero,
+					2 * frequencyMultiplier, sizeMultiplier, 2 * durationMultiplier);
 
 				return bleeder;
 			}

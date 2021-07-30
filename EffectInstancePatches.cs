@@ -1,4 +1,5 @@
 using HarmonyLib;
+using RealisticBleeding.Components;
 using ThunderRoad;
 using UnityEngine;
 
@@ -77,7 +78,7 @@ namespace RealisticBleeding
 						break;
 				}
 
-				Vector2? dimensions = null;
+				Vector2 dimensions = new Vector2(0.01f, 0.01f);
 
 				if (damageType == DamageType.Slash)
 				{
@@ -92,7 +93,7 @@ namespace RealisticBleeding
 						{
 							if (Vector3.Distance(nosePosition, position) < 0.1f)
 							{
-								NoseBleed.SpawnOn(creature, 1, 1);
+								NoseBleed.SpawnOn(creature, 1, 1, 0.7f);
 
 								return;
 							}
@@ -123,18 +124,9 @@ namespace RealisticBleeding
 			}
 
 			private static void SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
-				float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2? dimensions = null)
+				float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2 dimensions)
 			{
-				if (Bleeder.TrySpawn(position, rotation, parent, out var bleeder))
-				{
-					bleeder.DurationMultiplier = durationMultiplier;
-					bleeder.FrequencyMultiplier = frequencyMultiplier;
-					bleeder.SizeMultiplier = sizeMultiplier;
-					if (dimensions.HasValue)
-					{
-						bleeder.Dimensions = dimensions.Value;
-					}
-				}
+				Bleeder.Spawn(parent, position, rotation, dimensions, frequencyMultiplier, sizeMultiplier, durationMultiplier);
 			}
 		}
 	}

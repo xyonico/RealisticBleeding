@@ -2,6 +2,7 @@ using ThunderRoad;
 using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using RealisticBleeding.Components;
 
 namespace RealisticBleeding
 {
@@ -21,12 +22,8 @@ namespace RealisticBleeding
 
 			var jawBone = creature.speak.jaw;
 
-			var bleeder = Bleeder.Spawn(jawBone.TransformPoint(LowerLipOffset), jawBone.rotation * RotationOffset, jawBone);
-
-			bleeder.Dimensions = new Vector2(0.05f, 0);
-			bleeder.DurationMultiplier = durationMultiplier * 0.3f;
-			bleeder.FrequencyMultiplier = frequencyMultiplier * 4f;
-			bleeder.SizeMultiplier = sizeMultiplier * 0.75f;
+			Bleeder.Spawn(jawBone, jawBone.TransformPoint(LowerLipOffset), jawBone.rotation * RotationOffset, new Vector2(0.05f, 0),
+				frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f);
 
 			creature.speak.StartCoroutine(DelayedRemoveCreature(creature, 4));
 		}
