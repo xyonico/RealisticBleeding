@@ -1,4 +1,4 @@
-using System;
+using System.IO;
 using DefaultEcs;
 using DefaultEcs.System;
 using HarmonyLib;
@@ -7,6 +7,7 @@ using RealisticBleeding.Messages;
 using RealisticBleeding.Systems;
 using ThunderRoad;
 using UnityEngine;
+using YamlDotNet.Serialization;
 using Object = UnityEngine.Object;
 
 namespace RealisticBleeding
@@ -22,12 +23,16 @@ namespace RealisticBleeding
 		public static readonly World World = new World();
 
 		private static ISystem<float> _fixedUpdateSystem;
+		private static ISystem<float> _updateSystem;
 
 		internal static SphereCollider Collider { get; private set; }
 
-		internal static void OnLoaded(Configuration configuration)
+		internal static void OnLoaded()
 		{
-			Configuration = configuration;
+			var configPath = Path.Combine(Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location), "config.yaml");
+			Debug.Log(configPath);
+			var deserializer = new DeserializerBuilder().Build();
+			Configuration = deserializer.Deserialize<Configuration>(File.ReadAllText(configPath));
 
 			if (_hasLoaded) return;
 			_hasLoaded = true;
@@ -54,21 +59,27 @@ namespace RealisticBleeding
 			World.SetMaxCapacity<LayerMasks>(1);
 			World.Set(new LayerMasks(surfaceLayerMask, environmentLayerMask));
 
+			World.SetMaxCapacity<DeltaTimeMultiplier>(1);
+			World.Set(new DeltaTimeMultiplier(1));
+
 			var surfaceBloodDropSet = World.GetEntities().With<BloodDrop>().With<SurfaceCollider>().AsSet();
 			var shouldUpdateSurfaceBloodDropSet = World.GetEntities().With<BloodDrop>().With<SurfaceCollider>()
 				.WhenAdded<ShouldUpdate>().WhenChanged<ShouldUpdate>().AsSet();
 			var fallingBloodDropSet = World.GetEntities().With<BloodDrop>().Without<SurfaceCollider>().AsSet();
+			var didUpdateBloodDropSet = World.GetEntities().With<BloodDrop>().With<SurfaceCollider>()
+				.WhenAdded<DidUpdate>().WhenChanged<DidUpdate>().AsSet();
+
 			_fixedUpdateSystem = new SequentialSystem<float>(
 				new BleederSystem(World),
 				new FallingBloodDropSystem(fallingBloodDropSet),
 				new SurfaceBloodDropOptimizationSystem(surfaceBloodDropSet, Configuration.MaxActiveBloodDrips),
 				new SurfaceBloodDropVelocityRandomnessSystem(shouldUpdateSurfaceBloodDropSet),
 				new SurfaceBloodDropPhysicsSystem(shouldUpdateSurfaceBloodDropSet, Collider, Configuration.BloodSurfaceFrictionMultiplier),
-				new SurfaceBloodDecalSystem(shouldUpdateSurfaceBloodDropSet),
 				new BloodDropDrippingSystem(shouldUpdateSurfaceBloodDropSet),
 				new LifetimeSystem(World.GetEntities().With<Lifetime>().AsSet()),
 				new ActionSystem<float>(_ => shouldUpdateSurfaceBloodDropSet.Complete()));
 
+			_updateSystem = new SurfaceBloodDecalSystem(didUpdateBloodDropSet);
 
 			World.Subscribe((in BloodDropHitSurface hitSurface) =>
 			{
@@ -82,6 +93,8 @@ namespace RealisticBleeding
 
 		internal static void OnUpdate()
 		{
+			_updateSystem.Update(Time.deltaTime);
+			
 			if (Input.GetKeyDown(KeyCode.T))
 			{
 				var cam = Spectator.local.cam.transform;

@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using ThunderRoad;
 using UnityEngine;
@@ -6,14 +5,11 @@ using Action = System.Action;
 
 namespace RealisticBleeding
 {
-	[Serializable]
 	public class LevelModule : ThunderRoad.LevelModule
 	{
-		public Configuration Configuration = new Configuration();
-		
 		private LevelModule()
 		{
-			EntryPoint.OnLoaded(Configuration);
+			EntryPoint.OnLoaded();
 		}
 
 		public override IEnumerator OnLoadCoroutine(Level level)

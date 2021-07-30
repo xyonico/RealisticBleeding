@@ -142,11 +142,17 @@
         <Reference Include="chabuk.manikinmono, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
             <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\chabuk.manikinmono.dll</HintPath>
         </Reference>
+        <Reference Include="YamlDotNet, Version=11.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e">
+          <HintPath>packages\YamlDotNet.11.2.1\lib\net45\YamlDotNet.dll</HintPath>
+          <Private>True</Private>
+        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="BloodMaterial.cs" />
         <Compile Include="Components\Bleeder.cs" />
         <Compile Include="Components\BloodDrop.cs" />
+        <Compile Include="Components\DeltaTimeMultiplier.cs" />
+        <Compile Include="Components\DidUpdate.cs" />
         <Compile Include="Components\LayerMasks.cs" />
         <Compile Include="Components\Lifetime.cs" />
         <Compile Include="Components\ShouldUpdate.cs" />

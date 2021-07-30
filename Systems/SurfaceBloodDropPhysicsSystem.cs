@@ -23,11 +23,20 @@ namespace RealisticBleeding.Systems
 		protected override void Update(float deltaTime, ReadOnlySpan<Entity> entities)
 		{
 			ref var layerMasks = ref World.Get<LayerMasks>();
-			
+			ref var deltaTimeMultiplier = ref World.Get<DeltaTimeMultiplier>();
+
+			deltaTime *= deltaTimeMultiplier.Value;
+
 			foreach (var entity in entities)
 			{
 				ref var bloodDrop = ref entity.Get<BloodDrop>();
 				ref var surfaceCollider = ref entity.Get<SurfaceCollider>();
+
+				if (surfaceCollider.Collider == null)
+				{
+					entity.Remove<SurfaceCollider>();
+					continue;
+				}
 
 				var worldPos = surfaceCollider.Collider.transform.TransformPoint(bloodDrop.Position);
 				
@@ -55,6 +64,8 @@ namespace RealisticBleeding.Systems
 				var speed = (prevPos - worldPos).magnitude;
 				surfaceCollider.DistanceTravelled += speed;
 				surfaceCollider.LastSurfaceSpeed = speed;
+				
+				entity.Set<DidUpdate>();
 			}
 		}
 

@@ -7,13 +7,9 @@ namespace RealisticBleeding.Systems
 {
 	public class SurfaceBloodDropOptimizationSystem : BaseSystem
 	{
-		private const float BloodIndexUpdateCycleDuration = 12;
-		private const int OuterRangeCount = 12;
-
 		private readonly int _maxBloodDrops;
-		
-		private static int _innerRangeIndex;
-		private static float _bloodIndexUpdateCycleProgress;
+
+		private static int _currentIndex;
 		
 		public SurfaceBloodDropOptimizationSystem(EntitySet entitySet, int maxBloodDrops) : base(entitySet)
 		{
@@ -22,41 +18,38 @@ namespace RealisticBleeding.Systems
 
 		protected override void Update(float deltaTime, ReadOnlySpan<Entity> entities)
 		{
-			// This isn't very readable currently. I'm trying to limit the amount of droplets that are updated per frame.
-			// Instead of spreading it out evenly, which causes all of them to slow down, I update on a cycle.
-			// That way, all the droplets get some time where they can update nearly every frame before slowing down and completely stopping.
-			_bloodIndexUpdateCycleProgress += deltaTime / BloodIndexUpdateCycleDuration;
-			_bloodIndexUpdateCycleProgress %= 1;
-
+			var overCount = entities.Length - EntryPoint.Configuration.MaxActiveBloodDrips;
+			if (overCount > 0)
+			{
+				var multiplier = 1 + overCount / entities.Length;
+				
+				World.Set(new DeltaTimeMultiplier(multiplier));
+			}
+			else
+			{
+				World.Set(new DeltaTimeMultiplier(1));
+			}
+			
 			if (entities.Length == 0) return;
 
 			var updateCount = 0;
 
-			var outerRangeCount = Mathf.Min(OuterRangeCount, entities.Length);
+			_currentIndex %= entities.Length;
 
-			var outerRangeStart = Mathf.FloorToInt(entities.Length * _bloodIndexUpdateCycleProgress);
-
-			_innerRangeIndex %= outerRangeCount;
-
-			var startIndex = _innerRangeIndex;
+			var startIndex = _currentIndex;
 
 			do
 			{
-				var index = outerRangeStart + _innerRangeIndex;
-				index %= outerRangeCount;
-
-				var currentDrop = entities[index];
+				var currentDrop = entities[_currentIndex++];
 
 				currentDrop.Set<ShouldUpdate>();
 				updateCount++;
 
-				_innerRangeIndex++;
-
-				if (_innerRangeIndex >= outerRangeCount)
+				if (_currentIndex >= entities.Length)
 				{
-					_innerRangeIndex = 0;
+					_currentIndex = 0;
 				}
-			} while (updateCount < _maxBloodDrops && _innerRangeIndex != startIndex);
+			} while (updateCount < _maxBloodDrops && _currentIndex != startIndex);
 		}
 	}
 }

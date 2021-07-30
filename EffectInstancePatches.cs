@@ -1,3 +1,4 @@
+using DefaultEcs;
 using HarmonyLib;
 using RealisticBleeding.Components;
 using ThunderRoad;
@@ -10,6 +11,8 @@ namespace RealisticBleeding
 		[HarmonyPatch(typeof(EffectInstance), "AddEffect")]
 		public static class AddEffectPatch
 		{
+			private static Vector3 _lastSpawnPosition = Vector3.positiveInfinity;
+			
 			public static void Postfix(EffectData effectData, Vector3 position, Quaternion rotation, Transform parent,
 				CollisionInstance collisionInstance)
 			{
@@ -117,16 +120,20 @@ namespace RealisticBleeding
 
 				if (!EntryPoint.Configuration.BleedingFromWoundsEnabled) return;
 
-				sizeMultiplier *= 0.75f;
+				if (Vector3.Distance(position, _lastSpawnPosition) < 0.04f) return;
 
+				_lastSpawnPosition = position;
+
+				sizeMultiplier *= 0.75f;
+				
 				SpawnBleeder(position, rotation, collisionInstance.targetCollider.transform,
-					durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
+						durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
 			}
 
-			private static void SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
+			private static Entity SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
 				float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2 dimensions)
 			{
-				Bleeder.Spawn(parent, position, rotation, dimensions, frequencyMultiplier, sizeMultiplier, durationMultiplier);
+				return Bleeder.Spawn(parent, position, rotation, dimensions, frequencyMultiplier, sizeMultiplier, durationMultiplier);
 			}
 		}
 	}
