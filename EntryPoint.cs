@@ -79,7 +79,9 @@ namespace RealisticBleeding
 				new LifetimeSystem(World.GetEntities().With<Lifetime>().AsSet()),
 				new ActionSystem<float>(_ => shouldUpdateSurfaceBloodDropSet.Complete()));
 
-			_updateSystem = new SurfaceBloodDecalSystem(didUpdateBloodDropSet);
+			_updateSystem = new SequentialSystem<float>(
+				new SurfaceBloodDecalSystem(didUpdateBloodDropSet),
+				new FallingBloodDropRenderingSystem(fallingBloodDropSet, sphereMesh, BloodMaterial.Material));
 
 			World.Subscribe((in BloodDropHitSurface hitSurface) =>
 			{

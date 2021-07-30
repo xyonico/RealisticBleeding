@@ -171,6 +171,7 @@
         <Compile Include="Systems\BaseSystem.cs" />
         <Compile Include="Systems\BleederSystem.cs" />
         <Compile Include="Systems\BloodDropDrippingSystem.cs" />
+        <Compile Include="Systems\FallingBloodDropRenderingSystem.cs" />
         <Compile Include="Systems\FallingBloodDropSystem.cs" />
         <Compile Include="Systems\LifetimeSystem.cs" />
         <Compile Include="Systems\SurfaceBloodDecalSystem.cs" />

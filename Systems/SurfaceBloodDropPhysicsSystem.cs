@@ -8,9 +8,9 @@ namespace RealisticBleeding.Systems
 	public class SurfaceBloodDropPhysicsSystem : BaseSystem
 	{
 		private const float SurfaceDrag = 45;
-		
+
 		private static readonly Collider[] _colliders = new Collider[32];
-		
+
 		private readonly SphereCollider _collider;
 		private readonly float _surfaceFrictionMultiplier;
 
@@ -34,14 +34,15 @@ namespace RealisticBleeding.Systems
 
 				if (surfaceCollider.Collider == null)
 				{
-					entity.Remove<SurfaceCollider>();
+					entity.Dispose();
+
 					continue;
 				}
 
 				var worldPos = surfaceCollider.Collider.transform.TransformPoint(bloodDrop.Position);
-				
+
 				var prevPos = worldPos;
-				
+
 				bloodDrop.Velocity += Physics.gravity * deltaTime;
 
 				Depenetrate(ref worldPos, layerMasks.Surface, ref bloodDrop, ref surfaceCollider);
@@ -57,14 +58,14 @@ namespace RealisticBleeding.Systems
 					surfaceCollider.LastNormal = (worldPos - closestPoint).normalized;
 
 					AssignNewSurfaceValues(ref bloodDrop, ref surfaceCollider, closestPoint, surfaceCollider.Collider);
-					
+
 					worldPos = closestPoint;
 				}
-				
+
 				var speed = (prevPos - worldPos).magnitude;
 				surfaceCollider.DistanceTravelled += speed;
 				surfaceCollider.LastSurfaceSpeed = speed;
-				
+
 				entity.Set<DidUpdate>();
 			}
 		}
@@ -113,13 +114,13 @@ namespace RealisticBleeding.Systems
 
 			return any;
 		}
-		
+
 		private void AssignNewSurfaceValues(ref BloodDrop bloodDrop, ref SurfaceCollider surfaceCollider, Vector3 point, Collider collider)
 		{
 			surfaceCollider.Collider = collider;
 			bloodDrop.Position = collider.transform.InverseTransformPoint(point);
 		}
-		
+
 		private static bool AnyNaN(Vector3 vector3)
 		{
 			return float.IsNaN(vector3.x) || float.IsNaN(vector3.y) || float.IsNaN(vector3.z);
