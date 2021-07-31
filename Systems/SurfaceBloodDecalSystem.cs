@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using DefaultEcs;
 using DefaultEcs.System;
 using RainyReignGames.RevealMask;
@@ -86,8 +85,6 @@ namespace RealisticBleeding.Systems
 
 						if (sqrDistance > maxSqrRadius) continue;
 
-						revealMaterialController.ActivateRevealMaterials();
-						
 						if (!_bloodDrops.TryGetValue(revealMaterialController, out var bloodDrops))
 						{
 							bloodDrops = ListPool<BloodDropGPU>.Get();
@@ -117,12 +114,19 @@ namespace RealisticBleeding.Systems
 					var bloodDropCount = Mathf.Min(bloodDrops.Count, _bloodDropsBuffer.count);
 					
 					_bloodDropsBuffer.SetData(bloodDrops, 0, 0, bloodDropCount);
+
+					var shouldClear = revealMaterialController.ActivateRevealMaterials();
 					
 					_commandBuffer.SetProjectionMatrix(projectionMatrix);
 					_commandBuffer.SetRenderTarget(revealMaterialController.MaskTexture);
 					_commandBuffer.SetGlobalBuffer(BloodDropsID, _bloodDropsBuffer);
 					_commandBuffer.SetGlobalInt(BloodDropCountID, bloodDropCount);
 					_commandBuffer.SetGlobalFloat(MultiplierID, multiplier);
+
+					if (shouldClear)
+					{
+						_commandBuffer.ClearRenderTarget(false, true, Color.clear);
+					}
 
 					var renderer = revealMaterialController.GetRenderer();
 					var submeshCount = revealMaterialController.GetSubmeshCount();
