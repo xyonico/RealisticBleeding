@@ -20,7 +20,7 @@ namespace RealisticBleeding.Components
 				Size = size
 			});
 			
-			entity.Set(new Lifetime(Random.Range(5f, 8f) * lifetimeMultiplier));
+			entity.Set(new Lifetime(Random.Range(5f, 7f) * lifetimeMultiplier));
 
 			if (attachToNearest)
 			{
