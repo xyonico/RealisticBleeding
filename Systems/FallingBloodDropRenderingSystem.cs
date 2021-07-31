@@ -22,9 +22,13 @@ namespace RealisticBleeding.Systems
 			foreach (var entity in entities)
 			{
 				ref var bloodDrop = ref entity.Get<BloodDrop>();
-				
-				var size = Mathf.Lerp(1, 3.5f, Mathf.InverseLerp(0, 4, bloodDrop.Velocity.magnitude));
-				var matrix = Matrix4x4.TRS(bloodDrop.Position, Quaternion.LookRotation(bloodDrop.Velocity), new Vector3(1, 1, size) * bloodDrop.Size);
+
+				var magnitude = bloodDrop.Velocity.magnitude;
+				var size = Mathf.Lerp(1, 3.5f, Mathf.InverseLerp(0, 4, magnitude));
+
+				var rotation = magnitude > 0.01f ? Quaternion.LookRotation(bloodDrop.Velocity.normalized) : Quaternion.identity;
+
+				var matrix = Matrix4x4.TRS(bloodDrop.Position, rotation, new Vector3(1, 1, size) * 0.007f);
 
 				Graphics.DrawMesh(_mesh, matrix, _material, 0);
 			}

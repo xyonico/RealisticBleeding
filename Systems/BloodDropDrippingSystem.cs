@@ -38,6 +38,7 @@ namespace RealisticBleeding.Systems
 					bloodDrop.Velocity = rb ? rb.GetPointVelocity(bloodDrop.Position) : Vector3.zero;
 
 					entity.Remove<SurfaceCollider>();
+					entity.Remove<DisposeWithCreature>();
 					entity.Remove<DripTime>();
 				}
 			}

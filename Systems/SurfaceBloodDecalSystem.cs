@@ -13,7 +13,7 @@ namespace RealisticBleeding.Systems
 {
 	public class SurfaceBloodDecalSystem : AEntitySetSystem<float>
 	{
-		private const float ProjectionDepth = 0.05f;
+		private const float ProjectionDepth = 0.06f;
 		
 		private static readonly int BloodDropsID = Shader.PropertyToID("_BloodDrops");
 		private static readonly int BloodDropCountID = Shader.PropertyToID("_BloodDropCount");
@@ -62,8 +62,13 @@ namespace RealisticBleeding.Systems
 
 				var startPos = worldPos + offset;
 				var endPos = worldPos - offset;
+
+				var radius = Mathf.Clamp(bloodDrop.Size * 0.5f, 0.003f, 0.02f);
+
+				var maxRadius = radius * 2;
+				var maxSqrRadius = maxRadius * maxRadius;
 				
-				var bloodDropGPU = new BloodDropGPU(startPos, endPos, Mathf.Clamp(bloodDrop.Size * 0.5f, 0.0025f, 0.02f));
+				var bloodDropGPU = new BloodDropGPU(startPos, endPos, radius);
 				
 				foreach (var rendererData in ragdollPart.renderers)
 				{
@@ -76,11 +81,10 @@ namespace RealisticBleeding.Systems
 						var renderer = rendererData.renderer;
 
 						if (!renderer.isVisible) continue;
-						var name = renderer.name;
 
-						var culture = CultureInfo.InvariantCulture;
-						if (culture.CompareInfo.IndexOf(name, "vfx", CompareOptions.IgnoreCase) >= 0) continue;
-						if (culture.CompareInfo.IndexOf(name, "hair", CompareOptions.IgnoreCase) >= 0) continue;
+						var sqrDistance = (worldPos - renderer.bounds.ClosestPoint(worldPos)).sqrMagnitude;
+
+						if (sqrDistance > maxSqrRadius) continue;
 
 						revealMaterialController.ActivateRevealMaterials();
 						
@@ -101,7 +105,7 @@ namespace RealisticBleeding.Systems
 			try
 			{
 				var projectionMatrix = Matrix4x4.Ortho(0, 1, 0, 1, -1, 100);
-				var multiplier = new Vector4(1f, 0, 0, 0);
+				var multiplier = 1f;
 
 				foreach (var keyValuePair in _bloodDrops)
 				{
@@ -109,15 +113,16 @@ namespace RealisticBleeding.Systems
 					
 					var revealMaterialController = keyValuePair.Key;
 					var bloodDrops = keyValuePair.Value;
+
+					var bloodDropCount = Mathf.Min(bloodDrops.Count, _bloodDropsBuffer.count);
 					
-					_bloodDropsBuffer.SetData(bloodDrops, 0, 0, Mathf.Min(bloodDrops.Count, _bloodDropsBuffer.count));
+					_bloodDropsBuffer.SetData(bloodDrops, 0, 0, bloodDropCount);
 					
 					_commandBuffer.SetProjectionMatrix(projectionMatrix);
-					_commandBuffer.SetInvertCulling(false);
 					_commandBuffer.SetRenderTarget(revealMaterialController.MaskTexture);
 					_commandBuffer.SetGlobalBuffer(BloodDropsID, _bloodDropsBuffer);
-					_commandBuffer.SetGlobalInt(BloodDropCountID, bloodDrops.Count);
-					_commandBuffer.SetGlobalVector(MultiplierID, multiplier);
+					_commandBuffer.SetGlobalInt(BloodDropCountID, bloodDropCount);
+					_commandBuffer.SetGlobalFloat(MultiplierID, multiplier);
 
 					var renderer = revealMaterialController.GetRenderer();
 					var submeshCount = revealMaterialController.GetSubmeshCount();
@@ -126,7 +131,7 @@ namespace RealisticBleeding.Systems
 					{
 						_commandBuffer.DrawRenderer(renderer, _decalMaterial, submeshIndex);
 					}
-					
+
 					context.ExecuteCommandBuffer(_commandBuffer);
 				}
 				// Clean up

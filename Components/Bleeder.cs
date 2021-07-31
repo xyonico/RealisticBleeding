@@ -19,8 +19,10 @@ namespace RealisticBleeding.Components
 		public static Entity Spawn(Transform parent, Vector3 position, Quaternion rotation, Vector2 dimensions, float frequencyMultiplier, float sizeMultiplier,
 			float durationMultiplier)
 		{
+			durationMultiplier *= EntryPoint.Configuration.BleedDurationMultiplier;
+			
 			var entity = EntryPoint.World.CreateEntity();
-			entity.Set(new Lifetime(Random.Range(4, 10f) * durationMultiplier));
+			entity.Set(new Lifetime(Random.Range(3, 8f) * durationMultiplier));
 			entity.Set(new Bleeder
 			{
 				Parent = parent,

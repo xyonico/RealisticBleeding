@@ -24,17 +24,22 @@ namespace RealisticBleeding
 
 			if (_bleedingCreatures.TryGetValue(creature, out var bleeds))
 			{
-				var bleeder = bleeds.left.Get<Bleeder>();
-				if (frequencyMultiplier * 2 > bleeder.FrequencyMultiplier)
+				if (bleeds.left.IsAlive)
 				{
-					bleeds.left.Dispose();
-					bleeds.right.Dispose();
+					var bleeder = bleeds.left.Get<Bleeder>();
+					if (frequencyMultiplier * 2 > bleeder.FrequencyMultiplier)
+					{
+						bleeds.left.Dispose();
+						bleeds.right.Dispose();
 					
-					creature.StopCoroutine(bleeds.coroutine);
-				}
-				else
-				{
-					return;
+						creature.StopCoroutine(bleeds.coroutine);
+
+						_bleedingCreatures.Remove(creature);
+					}
+					else
+					{
+						return;
+					}
 				}
 			}
 
@@ -47,6 +52,8 @@ namespace RealisticBleeding
 				noseOffset.x = nostrilOffset;
 				var bleeder = Bleeder.Spawn(centerEyes, centerEyes.TransformPoint(noseOffset), centerEyes.rotation, Vector2.zero,
 					2 * frequencyMultiplier, sizeMultiplier, 2 * durationMultiplier);
+				
+				bleeder.Set(new DisposeWithCreature(creature));
 
 				return bleeder;
 			}

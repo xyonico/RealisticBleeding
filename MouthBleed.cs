@@ -22,8 +22,10 @@ namespace RealisticBleeding
 
 			var jawBone = creature.speak.jaw;
 
-			Bleeder.Spawn(jawBone, jawBone.TransformPoint(LowerLipOffset), jawBone.rotation * RotationOffset, new Vector2(0.05f, 0),
+			var bleeder = Bleeder.Spawn(jawBone, jawBone.TransformPoint(LowerLipOffset), jawBone.rotation * RotationOffset, new Vector2(0.05f, 0),
 				frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f);
+			
+			bleeder.Set(new DisposeWithCreature(creature));
 
 			creature.speak.StartCoroutine(DelayedRemoveCreature(creature, 4));
 		}

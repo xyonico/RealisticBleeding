@@ -7,11 +7,16 @@ namespace RealisticBleeding.Systems
 {
 	public class BleederSystem : AEntitySetSystem<float>
 	{
-		private const float FrequencyRangeMin = 0.75f;
-		private const float FrequencyRangeMax = 1.75f;
+		private const float FrequencyRangeMin = 1f;
+		private const float FrequencyRangeMax = 2f;
 		
-		public BleederSystem(World world) : base(world.GetEntities().With<Bleeder>().AsSet())
+		private readonly float _frequencyMultiplier;
+		private readonly float _sizeMultiplier;
+
+		public BleederSystem(World world, float frequencyMultiplier, float sizeMultiplier) : base(world.GetEntities().With<Bleeder>().AsSet())
 		{
+			_frequencyMultiplier = frequencyMultiplier;
+			_sizeMultiplier = sizeMultiplier;
 		}
 
 		protected override void Update(float deltaTime, in Entity entity)
@@ -31,7 +36,7 @@ namespace RealisticBleeding.Systems
 
 			if (!entity.Has<NextBleedTime>())
 			{
-				entity.Set(new NextBleedTime(Random.Range(FrequencyRangeMin, FrequencyRangeMax) / bleeder.FrequencyMultiplier));
+				entity.Set(new NextBleedTime(Random.Range(FrequencyRangeMin, FrequencyRangeMax) / (bleeder.FrequencyMultiplier * _frequencyMultiplier)));
 
 				ref var dimensions = ref bleeder.Dimensions;
 				
@@ -48,7 +53,7 @@ namespace RealisticBleeding.Systems
 					randomVelocity = Vector3.ProjectOnPlane(randomVelocity, gravityDir);
 				}
 
-				BloodDrop.Spawn(dropPosition, randomVelocity, 0.01f * bleeder.SizeMultiplier);
+				BloodDrop.Spawn(dropPosition, randomVelocity, 0.01f * bleeder.SizeMultiplier * _sizeMultiplier);
 			}
 		}
 

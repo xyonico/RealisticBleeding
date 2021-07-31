@@ -27,12 +27,21 @@ namespace RealisticBleeding
 
 		internal static SphereCollider Collider { get; private set; }
 
+		private static EffectData _bloodDropDecalData;
+
 		internal static void OnLoaded()
 		{
 			var configPath = Path.Combine(Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location), "config.yaml");
-			Debug.Log(configPath);
-			var deserializer = new DeserializerBuilder().Build();
-			Configuration = deserializer.Deserialize<Configuration>(File.ReadAllText(configPath));
+
+			if (!File.Exists(configPath))
+			{
+				Configuration = new Configuration();
+			}
+			else
+			{
+				var deserializer = new DeserializerBuilder().Build();
+				Configuration = deserializer.Deserialize<Configuration>(File.ReadAllText(configPath));
+			}
 
 			if (_hasLoaded) return;
 			_hasLoaded = true;
@@ -45,7 +54,7 @@ namespace RealisticBleeding
 			var surfaceLayerMask = LayerMask.GetMask(nameof(LayerName.Avatar), nameof(LayerName.Ragdoll), nameof(LayerName.NPC),
 				nameof(LayerName.PlayerHandAndFoot));
 			var environmentLayerMask = LayerMask.GetMask(nameof(LayerName.Default), "NoLocomotion");
-			
+
 			var spherePrimitive = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 			Object.DontDestroyOnLoad(spherePrimitive);
 
@@ -55,7 +64,7 @@ namespace RealisticBleeding
 
 			var sphereMesh = spherePrimitive.GetComponent<MeshFilter>().sharedMesh;
 			spherePrimitive.transform.position = new Vector3(100000, 100000, 100000);
-			
+
 			World.SetMaxCapacity<LayerMasks>(1);
 			World.Set(new LayerMasks(surfaceLayerMask, environmentLayerMask));
 
@@ -69,8 +78,11 @@ namespace RealisticBleeding
 			var didUpdateBloodDropSet = World.GetEntities().With<BloodDrop>().With<SurfaceCollider>()
 				.WhenAdded<DidUpdate>().WhenChanged<DidUpdate>().AsSet();
 
+			var bleedersSet = World.GetEntities().With<Bleeder>().AsSet();
+			EffectInstancePatches.AddEffectPatch.ActiveBleeders = bleedersSet;
+
 			_fixedUpdateSystem = new SequentialSystem<float>(
-				new BleederSystem(World),
+				new BleederSystem(World, Configuration.BloodAmountMultiplier, Configuration.BloodStreakWidthMultiplier),
 				new FallingBloodDropSystem(fallingBloodDropSet),
 				new SurfaceBloodDropOptimizationSystem(surfaceBloodDropSet, Configuration.MaxActiveBloodDrips),
 				new SurfaceBloodDropVelocityRandomnessSystem(shouldUpdateSurfaceBloodDropSet),
@@ -83,6 +95,8 @@ namespace RealisticBleeding
 				new SurfaceBloodDecalSystem(didUpdateBloodDropSet),
 				new FallingBloodDropRenderingSystem(fallingBloodDropSet, sphereMesh, BloodMaterial.Material));
 
+			var disposeWithCreatureSystem = new DisposeWithCreatureSystem(World);
+
 			World.Subscribe((in BloodDropHitSurface hitSurface) =>
 			{
 				var surfaceCollider = new SurfaceCollider(hitSurface.Collider, Vector3.zero);
@@ -90,13 +104,46 @@ namespace RealisticBleeding
 
 				bloodDrop.Position = hitSurface.Collider.transform.InverseTransformPoint(bloodDrop.Position);
 				hitSurface.Entity.Set(surfaceCollider);
+
+				var rb = hitSurface.Collider.attachedRigidbody;
+				if (!rb) return;
+
+				if (rb.TryGetComponent(out RagdollPart ragdollPart))
+				{
+					hitSurface.Entity.Set(new DisposeWithCreature(ragdollPart.ragdoll.creature));
+				}
 			});
+
+			World.Subscribe<BloodDropHitEnvironment>(OnBloodDropHitEnvironment);
+		}
+
+		private static void OnBloodDropHitEnvironment(in BloodDropHitEnvironment message)
+		{
+			ref var bloodDrop = ref message.Entity.Get<BloodDrop>();
+
+			if (_bloodDropDecalData == null)
+			{
+				_bloodDropDecalData = Catalog.GetData<EffectData>("DropBlood");
+			}
+
+			var rotation = Quaternion.AngleAxis(Random.Range(0f, 360f), message.Normal) * Quaternion.LookRotation(message.Normal);
+			var instance = _bloodDropDecalData.Spawn(bloodDrop.Position, rotation);
+			instance.Play();
+
+			if (instance.effects == null || instance.effects.Count == 0) return;
+
+			var effectDecal = instance.effects[0] as EffectDecal;
+
+			if (effectDecal == null) return;
+
+			const float decalScale = 0.1f;
+			effectDecal.meshRenderer.transform.localScale = new Vector3(decalScale, decalScale, decalScale);
 		}
 
 		internal static void OnUpdate()
 		{
 			_updateSystem.Update(Time.deltaTime);
-			
+
 			if (Input.GetKeyDown(KeyCode.T))
 			{
 				var cam = Spectator.local.cam.transform;
@@ -114,8 +161,8 @@ namespace RealisticBleeding
 					if (rigidbody.TryGetComponent(out RagdollPart part))
 					{
 						SpawnBloodDrop(hit.point);
-						var creature = part.ragdoll.creature;
 
+						//var creature = part.ragdoll.creature;
 						//NoseBleed.SpawnOn(creature, 1, 1, 0.4f);
 						//MouthBleed.SpawnOn(creature, 1, 1);
 					}
