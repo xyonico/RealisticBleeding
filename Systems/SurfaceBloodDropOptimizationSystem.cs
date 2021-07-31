@@ -1,7 +1,6 @@
 using System;
 using DefaultEcs;
 using RealisticBleeding.Components;
-using UnityEngine;
 
 namespace RealisticBleeding.Systems
 {
@@ -18,20 +17,6 @@ namespace RealisticBleeding.Systems
 
 		protected override void Update(float deltaTime, ReadOnlySpan<Entity> entities)
 		{
-			/*
-			var overCount = entities.Length - EntryPoint.Configuration.MaxActiveBloodDrips;
-			if (overCount > 0)
-			{
-				var multiplier = 1 + overCount / (entities.Length * 10f);
-				
-				World.Set(new DeltaTimeMultiplier(multiplier));
-			}
-			else
-			{
-				World.Set(new DeltaTimeMultiplier(1));
-			}
-			*/
-			
 			if (entities.Length == 0) return;
 
 			var updateCount = 0;
