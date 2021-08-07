@@ -1,4 +1,6 @@
+using DefaultEcs;
 using HarmonyLib;
+using RealisticBleeding.Components;
 using ThunderRoad;
 using UnityEngine;
 
@@ -9,6 +11,8 @@ namespace RealisticBleeding
 		[HarmonyPatch(typeof(EffectInstance), "AddEffect")]
 		public static class AddEffectPatch
 		{
+			public static EntitySet ActiveBleeders { get; set; }
+			
 			public static void Postfix(EffectData effectData, Vector3 position, Quaternion rotation, Transform parent,
 				CollisionInstance collisionInstance)
 			{
@@ -55,29 +59,26 @@ namespace RealisticBleeding
 				{
 					case RagdollPart.Type.Neck:
 						durationMultiplier *= 5;
-						frequencyMultiplier *= 5;
-						sizeMultiplier *= 1.2f;
+						frequencyMultiplier *= 4f;
+						sizeMultiplier *= 1.4f;
 						break;
 					case RagdollPart.Type.Head:
-						if (damageType != DamageType.Blunt)
-						{
-							durationMultiplier *= 2f;
-							frequencyMultiplier *= 3;
-							sizeMultiplier *= 0.9f;
-						}
+						durationMultiplier *= 2f;
+						frequencyMultiplier *= 1.7f;
+						sizeMultiplier *= 0.9f;
 
 						break;
 					case RagdollPart.Type.Torso:
 						if (damageType != DamageType.Blunt)
 						{
 							durationMultiplier *= 2f;
-							frequencyMultiplier *= 4;
+							frequencyMultiplier *= 2f;
 						}
 
 						break;
 				}
 
-				Vector2? dimensions = null;
+				Vector2 dimensions = new Vector2(0.01f, 0.01f);
 
 				if (damageType == DamageType.Slash)
 				{
@@ -92,7 +93,7 @@ namespace RealisticBleeding
 						{
 							if (Vector3.Distance(nosePosition, position) < 0.1f)
 							{
-								NoseBleed.SpawnOn(creature, 1, 1);
+								NoseBleed.SpawnOnDelayed(creature, Random.Range(0.75f, 1.75f), 1, 1, 0.7f);
 
 								return;
 							}
@@ -109,32 +110,33 @@ namespace RealisticBleeding
 				{
 					if (intensity > 0.2f)
 					{
-						NoseBleed.SpawnOnDelayed(creature, Random.Range(0.8f, 1.7f), 0.1f, 0.05f, 0.4f);
+						NoseBleed.SpawnOnDelayed(creature, Random.Range(0.8f, 1.7f), 0.2f, 0.1f, 0.7f);
 						MouthBleed.SpawnOnDelayed(creature, Random.Range(0.8f, 1.7f), 1, 1);
 					}
 				}
 
 				if (!EntryPoint.Configuration.BleedingFromWoundsEnabled) return;
 
-				sizeMultiplier *= 0.75f;
+				foreach (var entity in ActiveBleeders.GetEntities())
+				{
+					ref var activeBleeder = ref entity.Get<Bleeder>();
+					var sqrDistance = (activeBleeder.WorldPosition - position).sqrMagnitude;
 
-				SpawnBleeder(position, rotation, collisionInstance.targetCollider.transform,
-					durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
+					const float minDistance = 0.05f;
+
+					if (sqrDistance < minDistance * minDistance) return;
+				}
+
+				var bleeder = SpawnBleeder(position, rotation, collisionInstance.targetCollider.transform,
+						durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
+				
+				bleeder.Set(new DisposeWithCreature(creature));
 			}
 
-			private static void SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
-				float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2? dimensions = null)
+			private static Entity SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
+				float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2 dimensions)
 			{
-				if (Bleeder.TrySpawn(position, rotation, parent, out var bleeder))
-				{
-					bleeder.DurationMultiplier = durationMultiplier;
-					bleeder.FrequencyMultiplier = frequencyMultiplier;
-					bleeder.SizeMultiplier = sizeMultiplier;
-					if (dimensions.HasValue)
-					{
-						bleeder.Dimensions = dimensions.Value;
-					}
-				}
+				return Bleeder.Spawn(parent, position, rotation, dimensions, frequencyMultiplier, sizeMultiplier, durationMultiplier);
 			}
 		}
 	}
