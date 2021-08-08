@@ -152,7 +152,6 @@
         <Compile Include="Components\Bleeder.cs" />
         <Compile Include="Components\BloodDrop.cs" />
         <Compile Include="Components\DeltaTimeMultiplier.cs" />
-        <Compile Include="Components\DidUpdate.cs" />
         <Compile Include="Components\DisposeWithCreature.cs" />
         <Compile Include="Components\LayerMasks.cs" />
         <Compile Include="Components\Lifetime.cs" />

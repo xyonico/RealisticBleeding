@@ -65,8 +65,6 @@ namespace RealisticBleeding.Systems
 				var speed = (prevPos - worldPos).magnitude;
 				surfaceCollider.DistanceTravelled += speed;
 				surfaceCollider.LastSurfaceSpeed = speed;
-
-				entity.Set<DidUpdate>();
 			}
 		}
 

@@ -30,7 +30,7 @@ namespace RealisticBleeding.Systems
 		{
 			RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
 			
-			_bloodDropsBuffer = new ComputeBuffer(64, BloodDropGPU.SizeOf);
+			_bloodDropsBuffer = new ComputeBuffer(512, BloodDropGPU.SizeOf);
 			_commandBuffer = new CommandBuffer {name = "Realistic Blood - Decal Drawing"};
 			
 			Catalog.LoadAssetAsync("RealisticBloodDecal", (Shader shader) =>

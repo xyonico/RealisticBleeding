@@ -86,8 +86,6 @@ namespace RealisticBleeding
 			var shouldUpdateSurfaceBloodDropSet = World.GetEntities().With<BloodDrop>().With<SurfaceCollider>()
 				.WhenAdded<ShouldUpdate>().WhenChanged<ShouldUpdate>().AsSet();
 			var fallingBloodDropSet = World.GetEntities().With<BloodDrop>().Without<SurfaceCollider>().AsSet();
-			var didUpdateBloodDropSet = World.GetEntities().With<BloodDrop>().With<SurfaceCollider>()
-				.WhenAdded<DidUpdate>().WhenChanged<DidUpdate>().AsSet();
 
 			var bleedersSet = World.GetEntities().With<Bleeder>().AsSet();
 			EffectInstancePatches.AddEffectPatch.ActiveBleeders = bleedersSet;
@@ -99,11 +97,11 @@ namespace RealisticBleeding
 				new SurfaceBloodDropVelocityRandomnessSystem(shouldUpdateSurfaceBloodDropSet),
 				new SurfaceBloodDropPhysicsSystem(shouldUpdateSurfaceBloodDropSet, Collider, Configuration.BloodSurfaceFrictionMultiplier),
 				new BloodDropDrippingSystem(shouldUpdateSurfaceBloodDropSet),
+				new SurfaceBloodDecalSystem(shouldUpdateSurfaceBloodDropSet),
 				new LifetimeSystem(World.GetEntities().With<Lifetime>().AsSet()),
 				new ActionSystem<float>(_ => shouldUpdateSurfaceBloodDropSet.Complete()));
 
 			_updateSystem = new SequentialSystem<float>(
-				new SurfaceBloodDecalSystem(didUpdateBloodDropSet),
 				new FallingBloodDropRenderingSystem(fallingBloodDropSet, sphereMesh, BloodMaterial.Material));
 
 			var disposeWithCreatureSystem = new DisposeWithCreatureSystem(World);

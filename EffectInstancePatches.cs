@@ -17,10 +17,13 @@ namespace RealisticBleeding
 				CollisionInstance collisionInstance)
 			{
 				if (!Options.allowGore) return;
+				
+				if (effectData == null || effectData.id == null) return;
+				if (!effectData.id.Contains("Decal")) return;
 
 				if (collisionInstance == null) return;
-				var ragdollPart = collisionInstance.damageStruct.hitRagdollPart;
 
+				var ragdollPart = collisionInstance.damageStruct.hitRagdollPart;
 				if (ragdollPart == null) return;
 				
 				var creature = ragdollPart.ragdoll.creature;
@@ -127,7 +130,7 @@ namespace RealisticBleeding
 					if (sqrDistance < minDistance * minDistance) return;
 				}
 
-				var bleeder = SpawnBleeder(position, rotation, collisionInstance.targetCollider.transform,
+				var bleeder = SpawnBleeder(position, rotation, ragdollPart.transform,
 						durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
 				
 				bleeder.Set(new DisposeWithCreature(creature));
