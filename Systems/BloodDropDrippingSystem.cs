@@ -6,8 +6,8 @@ namespace RealisticBleeding.Systems
 {
 	public class BloodDropDrippingSystem : BaseSystem
 	{
-		private const float DripTimeRequiredMin = 0.25f;
-		private const float DropTimeRequiredMax = 0.75f;
+		private const float DripTimeRequiredMin = 0.75f;
+		private const float DropTimeRequiredMax = 1.25f;
 		private const float MaxVelocityToDrip = 0.08f;
 		
 		public BloodDropDrippingSystem(EntitySet entitySet) : base(entitySet)
