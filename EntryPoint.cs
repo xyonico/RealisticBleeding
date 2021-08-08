@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using DefaultEcs;
 using DefaultEcs.System;
@@ -9,6 +10,7 @@ using ThunderRoad;
 using UnityEngine;
 using YamlDotNet.Serialization;
 using Object = UnityEngine.Object;
+using Random = UnityEngine.Random;
 
 namespace RealisticBleeding
 {
@@ -31,16 +33,25 @@ namespace RealisticBleeding
 
 		internal static void OnLoaded()
 		{
-			var configPath = Path.Combine(Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location), "config.yaml");
+			try
+			{
+				var configPath = Path.Combine(Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location), "config.yaml");
 
-			if (!File.Exists(configPath))
-			{
-				Configuration = new Configuration();
+				if (!File.Exists(configPath))
+				{
+					Configuration = new Configuration();
+				}
+				else
+				{
+					var deserializer = new DeserializerBuilder().Build();
+					Configuration = deserializer.Deserialize<Configuration>(File.ReadAllText(configPath));
+				}
 			}
-			else
+			catch (Exception e)
 			{
-				var deserializer = new DeserializerBuilder().Build();
-				Configuration = deserializer.Deserialize<Configuration>(File.ReadAllText(configPath));
+				Debug.LogException(e);
+
+				Configuration = new Configuration();
 			}
 
 			if (_hasLoaded) return;
