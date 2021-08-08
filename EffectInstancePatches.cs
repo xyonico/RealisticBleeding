@@ -110,8 +110,8 @@ namespace RealisticBleeding
 				{
 					if (intensity > 0.2f)
 					{
-						NoseBleed.SpawnOnDelayed(creature, Random.Range(0.8f, 1.7f), 0.2f, 0.1f, 0.7f);
-						MouthBleed.SpawnOnDelayed(creature, Random.Range(0.8f, 1.7f), 1, 1);
+						NoseBleed.SpawnOnDelayed(creature, Random.Range(2f, 4f), 0.2f, 0.1f, 0.7f);
+						MouthBleed.SpawnOnDelayed(creature, Random.Range(2, 4f), 1, 1);
 					}
 				}
 
