@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using ThunderRoad;
 using UnityEngine;
@@ -9,7 +10,14 @@ namespace RealisticBleeding
 	{
 		private LevelModule()
 		{
-			EntryPoint.OnLoaded();
+			try
+			{
+				EntryPoint.OnLoaded();
+			}
+			catch (Exception e)
+			{
+				Debug.LogException(e);
+			}
 		}
 
 		public override IEnumerator OnLoadCoroutine(Level level)
