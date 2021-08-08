@@ -33,14 +33,14 @@ namespace RealisticBleeding
 						bleeds.right.Dispose();
 					
 						creature.StopCoroutine(bleeds.coroutine);
-
-						_bleedingCreatures.Remove(creature);
 					}
 					else
 					{
 						return;
 					}
 				}
+				
+				_bleedingCreatures.Remove(creature);
 			}
 
 			var left = SpawnNoseBleeder(-NostrilOffset); // left nostril
