@@ -160,7 +160,7 @@
         <Compile Include="Configuration.cs" />
         <Compile Include="CreatureDespawnHook.cs" />
         <Compile Include="DisableMaskMipMappingPatch.cs" />
-        <Compile Include="EffectInstancePatches.cs" />
+        <Compile Include="EffectRevealPatches.cs" />
         <Compile Include="EntryPoint.cs" />
         <Compile Include="LevelModule.cs" />
         <Compile Include="Messages\BloodDropHitEnvironmentMessage.cs" />

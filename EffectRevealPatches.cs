@@ -6,21 +6,33 @@ using UnityEngine;
 
 namespace RealisticBleeding
 {
-	public static class EffectInstancePatches
+	public static class EffectRevealPatches
 	{
 		[HarmonyPatch(typeof(EffectInstance), "AddEffect")]
 		public static class AddEffectPatch
 		{
+			public static CollisionInstance LastCollisionInstance { get; private set; }
+
+			public static void Prefix(CollisionInstance collisionInstance)
+			{
+				if (collisionInstance != null)
+				{
+					LastCollisionInstance = collisionInstance;
+				}
+			}
+		}
+		
+		[HarmonyPatch(typeof(EffectReveal), "Play")]
+		public static class PlayPatch
+		{
 			public static EntitySet ActiveBleeders { get; set; }
 			
-			public static void Postfix(EffectData effectData, Vector3 position, Quaternion rotation, Transform parent,
-				CollisionInstance collisionInstance)
+			public static void Postfix(EffectReveal __instance)
 			{
 				if (!Options.allowGore) return;
-				
-				if (effectData == null || effectData.id == null) return;
-				if (!effectData.id.Contains("Decal")) return;
 
+				var collisionInstance = AddEffectPatch.LastCollisionInstance;
+				
 				if (collisionInstance == null) return;
 
 				var ragdollPart = collisionInstance.damageStruct.hitRagdollPart;
@@ -87,6 +99,9 @@ namespace RealisticBleeding
 				{
 					dimensions = new Vector2(0, Mathf.Lerp(0.06f, 0.12f, intensity));
 				}
+
+				var position = __instance.transform.position;
+				var rotation = __instance.transform.rotation;
 
 				if (damageType == DamageType.Blunt && ragdollPart.type == RagdollPart.Type.Head)
 				{
