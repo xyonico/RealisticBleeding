@@ -152,31 +152,6 @@ namespace RealisticBleeding
 		internal static void OnUpdate()
 		{
 			_updateSystem.Update(Time.deltaTime);
-
-			if (Input.GetKeyDown(KeyCode.T))
-			{
-				var cam = Spectator.local.cam.transform;
-				const float hitRange = 10f;
-
-				var layerMask = LayerMask.GetMask(nameof(LayerName.Avatar), nameof(LayerName.Ragdoll), nameof(LayerName.NPC),
-					nameof(LayerName.PlayerHandAndFoot));
-
-				if (Physics.Raycast(cam.position, cam.forward, out var hit, hitRange, layerMask))
-				{
-					var rigidbody = hit.collider.attachedRigidbody;
-
-					if (rigidbody == null) return;
-
-					if (rigidbody.TryGetComponent(out RagdollPart part))
-					{
-						SpawnBloodDrop(hit.point);
-
-						//var creature = part.ragdoll.creature;
-						//NoseBleed.SpawnOn(creature, 1, 1, 0.4f);
-						//MouthBleed.SpawnOn(creature, 1, 1);
-					}
-				}
-			}
 		}
 
 		internal static void OnFixedUpdate()

@@ -16,26 +16,24 @@ namespace RealisticBleeding
 		public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)
 		{
 			if (creature == null) return;
-			if (creature.speak == null) return;
 
 			if (!_bleedingCreatures.Add(creature)) return;
 
-			var jawBone = creature.speak.jaw;
+			var jawBone = creature.jaw;
 
 			var bleeder = Bleeder.Spawn(jawBone, jawBone.TransformPoint(LowerLipOffset), jawBone.rotation * RotationOffset, new Vector2(0.05f, 0),
 				frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f);
 			
 			bleeder.Set(new DisposeWithCreature(creature));
 
-			creature.speak.StartCoroutine(DelayedRemoveCreature(creature, 4));
+			creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
 		}
 
 		public static void SpawnOnDelayed(Creature creature, float delay, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)
 		{
 			if (creature == null) return;
-			if (creature.speak == null) return;
 
-			creature.speak.StartCoroutine(SpawnOnDelayedRoutine(creature, delay, durationMultiplier, frequencyMultiplier, sizeMultiplier));
+			creature.StartCoroutine(SpawnOnDelayedRoutine(creature, delay, durationMultiplier, frequencyMultiplier, sizeMultiplier));
 		}
 
 		private static IEnumerator SpawnOnDelayedRoutine(Creature creature, float delay, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier)

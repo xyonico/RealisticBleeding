@@ -35,44 +35,21 @@
         <Reference Include="0Harmony, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding\0Harmony.dll</HintPath>
         </Reference>
-        <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Assembly-CSharp.dll</HintPath>
-        </Reference>
-        <Reference Include="BetterStreamingAssets, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\BetterStreamingAssets.dll</HintPath>
-        </Reference>
         <Reference Include="DefaultEcs, Version=0.16.1.0, Culture=neutral, PublicKeyToken=0ab8f459261ccb3c">
           <HintPath>packages\DefaultEcs.0.16.1\lib\netstandard2.0\DefaultEcs.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="mscorlib" />
-        <Reference Include="RainyReignGames.Collections, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.Collections.dll</HintPath>
-        </Reference>
-        <Reference Include="RainyReignGames.Dismemberment, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.Dismemberment.dll</HintPath>
-        </Reference>
-        <Reference Include="RainyReignGames.Expresssions, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.Expresssions.dll</HintPath>
-        </Reference>
-        <Reference Include="RainyReignGames.MeshUtilities, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.MeshUtilities.dll</HintPath>
-        </Reference>
         <Reference Include="RainyReignGames.Reveal, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.Reveal.dll</HintPath>
         </Reference>
-        <Reference Include="System" />
         <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
           <HintPath>packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="System.Core" />
-        <Reference Include="System.Data" />
         <Reference Include="System.Memory, Version=4.0.1.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51">
           <HintPath>packages\System.Memory.4.5.4\lib\net461\System.Memory.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="System.Numerics" />
         <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
           <HintPath>packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
           <Private>True</Private>
@@ -81,33 +58,14 @@
           <HintPath>packages\System.Runtime.CompilerServices.Unsafe.4.5.3\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="System.Xml" />
-        <Reference Include="Unity.Addressables, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.Addressables.dll</HintPath>
-        </Reference>
-        <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>
+        <Reference Include="ThunderRoad, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
         </Reference>
         <Reference Include="Unity.RenderPipelines.Core.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
         </Reference>
-        <Reference Include="Unity.RenderPipelines.Core.ShaderLibrary, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Core.ShaderLibrary.dll</HintPath>
-        </Reference>
-        <Reference Include="Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.ShaderGraph.ShaderGraphLibrary.dll</HintPath>
-        </Reference>
-        <Reference Include="Unity.RenderPipelines.Universal.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Universal.Runtime.dll</HintPath>
-        </Reference>
-        <Reference Include="Unity.RenderPipelines.Universal.Shaders, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Universal.Shaders.dll</HintPath>
-        </Reference>
         <Reference Include="Unity.ResourceManager, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.ResourceManager.dll</HintPath>
-        </Reference>
-        <Reference Include="Unity.ScriptableBuildPipeline, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.ScriptableBuildPipeline.dll</HintPath>
         </Reference>
         <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.dll</HintPath>
@@ -115,32 +73,8 @@
         <Reference Include="UnityEngine.CoreModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.CoreModule.dll</HintPath>
         </Reference>
-        <Reference Include="UnityEngine.ImageConversionModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.InputLegacyModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.InputModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.InputModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.JSONSerializeModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.JSONSerializeModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.ParticleSystemModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.ParticleSystemModule.dll</HintPath>
-        </Reference>
         <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.UnityWebRequestModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestModule.dll</HintPath>
-        </Reference>
-        <Reference Include="UnityEngine.UnityWebRequestTextureModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.UnityWebRequestTextureModule.dll</HintPath>
-        </Reference>
-        <Reference Include="chabuk.manikinmono, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\chabuk.manikinmono.dll</HintPath>
         </Reference>
         <Reference Include="YamlDotNet, Version=11.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e">
           <HintPath>packages\YamlDotNet.11.2.1\lib\net45\YamlDotNet.dll</HintPath>

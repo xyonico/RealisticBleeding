@@ -29,7 +29,7 @@ namespace RealisticBleeding
 			
 			public static void Postfix(EffectReveal __instance)
 			{
-				if (!Options.allowGore) return;
+				if (!GameManager.options.enableCharacterReveal) return;
 
 				var collisionInstance = AddEffectPatch.LastCollisionInstance;
 				

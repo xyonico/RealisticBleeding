@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using ThunderRoad;
 using UnityEngine;
 using Action = System.Action;
 
@@ -20,7 +19,7 @@ namespace RealisticBleeding
 			}
 		}
 
-		public override IEnumerator OnLoadCoroutine(Level level)
+		public override IEnumerator OnLoadCoroutine()
 		{
 			var hook = level.gameObject.AddComponent<FixedUpdateHook>();
 			hook.FixedUpdateEvent += EntryPoint.OnFixedUpdate;
@@ -28,7 +27,7 @@ namespace RealisticBleeding
 			yield break;
 		}
 
-		public override void Update(Level level)
+		public override void Update()
 		{
 			EntryPoint.OnUpdate();
 		}
