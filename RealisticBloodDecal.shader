@@ -42,7 +42,16 @@
 
             inline int getCellIndex(int3 coord)
             {
-                return coord.z * _BoundsDimensions.x * _BoundsDimensions.y + coord.y * _BoundsDimensions.x + coord.x;
+                int count = coord.x * coord.y * coord.z;
+                
+                int index = coord.z * _BoundsDimensions.x * _BoundsDimensions.y + coord.y * _BoundsDimensions.x + coord.x;
+
+                if (index > count)
+                {
+                    index = -1;
+                }
+
+                return index;
             }
 
             struct appdata
