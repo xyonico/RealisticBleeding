@@ -15,7 +15,9 @@ namespace RealisticBleeding.Systems
 	{
 		private const float ProjectionDepth = 0.06f;
 
-		private static readonly Vector3Int BoundsDimensions = new Vector3Int(4, 4, 4);
+		private const float CellSize = 0.1f;
+		private const int MaxBoundsDimension = 20;
+		private const int MaxCellCount = MaxBoundsDimension * MaxBoundsDimension * MaxBoundsDimension;
 
 		private static readonly int BloodDropsID = Shader.PropertyToID("_BloodDrops");
 		private static readonly int CellsID = Shader.PropertyToID("_Cells");
@@ -37,9 +39,7 @@ namespace RealisticBleeding.Systems
 			RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
 
 			_bloodDropsBuffer = new ComputeBuffer(512, BloodDropGPU.SizeOf);
-
-			var totalCellsCount = BoundsDimensions.x * BoundsDimensions.y * BoundsDimensions.z;
-			_cellsBuffer = new ComputeBuffer(totalCellsCount, CellGPU.SizeOf);
+			_cellsBuffer = new ComputeBuffer(MaxCellCount, CellGPU.SizeOf);
 
 			_commandBuffer = new CommandBuffer { name = "Realistic Blood - Decal Drawing" };
 
@@ -137,7 +137,7 @@ namespace RealisticBleeding.Systems
 					_commandBuffer.SetGlobalBuffer(BloodDropsID, _bloodDropsBuffer);
 					_commandBuffer.SetGlobalBuffer(CellsID, _cellsBuffer);
 					_commandBuffer.SetGlobalMatrix(BoundsMatrixID, bloodDropsGrid.Matrix);
-					_commandBuffer.SetGlobalVector(BoundsDimensionsID, (Vector3)BoundsDimensions);
+					_commandBuffer.SetGlobalVector(BoundsDimensionsID, (Vector3) bloodDropsGrid.Dimensions);
 					_commandBuffer.SetGlobalFloat(MultiplierID, multiplier);
 
 					if (shouldClear)
@@ -202,16 +202,15 @@ namespace RealisticBleeding.Systems
 
 		private class BloodDropGrid : IDisposable
 		{
-			private static readonly ObjectPool<BloodDropGrid> Pool = new ObjectPool<BloodDropGrid>(grid => grid.Initialize(BoundsDimensions), null);
+			private static readonly ObjectPool<BloodDropGrid> Pool = new ObjectPool<BloodDropGrid>(null, null);
 
-			private Vector3Int _dim;
 			private List<BloodDropGPU>[,,] _grid;
 			private Bounds[,,] _cellBounds;
-			private int _totalCellBloodDropCount;
 
 			public Matrix4x4 Matrix { get; private set; }
+			public Vector3Int Dimensions { get; private set; }
 
-			private static readonly CellGPU[] CellArray = new CellGPU[BoundsDimensions.x * BoundsDimensions.y * BoundsDimensions.z];
+			private static readonly CellGPU[] CellArray = new CellGPU[MaxCellCount];
 
 			public static BloodDropGrid Get(Bounds worldBounds)
 			{
@@ -223,28 +222,34 @@ namespace RealisticBleeding.Systems
 
 			private void Initialize(Vector3Int dimensions)
 			{
-				_dim = dimensions;
-				_grid = new List<BloodDropGPU>[_dim.x, _dim.y, _dim.z];
-				_cellBounds = new Bounds[_dim.x, _dim.y, _dim.z];
+				Dimensions = dimensions;
+				_grid = new List<BloodDropGPU>[MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension];
+				_cellBounds = new Bounds[MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension];
 			}
 
 			private void SetWorldBounds(Bounds bounds)
 			{
 				var size = bounds.size;
 				var min = bounds.min;
+				
+				var dim = Vector3Int.CeilToInt(new Vector3(size.x / CellSize, size.y / CellSize, size.z / CellSize));
 
+				dim = Vector3Int.Min(dim, new Vector3Int(MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension));
+
+				Initialize(dim);
+				
 				Matrix = Matrix4x4.TRS(min, Quaternion.identity, size).inverse;
 
-				var cellSize = new Vector3(size.x / _dim.x, size.y / _dim.y, size.z / _dim.z);
+				var cellSize = new Vector3(size.x / Dimensions.x, size.y / Dimensions.y, size.z / Dimensions.z);
 
 				var cellBounds = new Bounds();
 				cellBounds.SetMinMax(min, min + cellSize);
 
-				for (var z = 0; z < _dim.z; z++)
+				for (var z = 0; z < Dimensions.z; z++)
 				{
-					for (var y = 0; y < _dim.y; y++)
+					for (var y = 0; y < Dimensions.y; y++)
 					{
-						for (var x = 0; x < _dim.x; x++)
+						for (var x = 0; x < Dimensions.x; x++)
 						{
 							_cellBounds[x, y, z] = new Bounds(cellBounds.center + Vector3.Scale(cellSize, new Vector3(x, y, z)), cellSize);
 						}
@@ -257,11 +262,11 @@ namespace RealisticBleeding.Systems
 				var sqrRadius = 1f / bloodDrop.InverseRadius;
 				sqrRadius *= sqrRadius;
 
-				for (var z = 0; z < _dim.z; z++)
+				for (var z = 0; z < Dimensions.z; z++)
 				{
-					for (var y = 0; y < _dim.y; y++)
+					for (var y = 0; y < Dimensions.y; y++)
 					{
-						for (var x = 0; x < _dim.x; x++)
+						for (var x = 0; x < Dimensions.x; x++)
 						{
 							ref var bounds = ref _cellBounds[x, y, z];
 
@@ -287,17 +292,15 @@ namespace RealisticBleeding.Systems
 				}
 
 				list.Add(bloodDropGPU);
-
-				_totalCellBloodDropCount++;
 			}
 
 			private void Clear()
 			{
-				for (var x = 0; x < _dim.x; x++)
+				for (var x = 0; x < Dimensions.x; x++)
 				{
-					for (var y = 0; y < _dim.y; y++)
+					for (var y = 0; y < Dimensions.y; y++)
 					{
-						for (var z = 0; z < _dim.z; z++)
+						for (var z = 0; z < Dimensions.z; z++)
 						{
 							_grid[x, y, z]?.Clear();
 						}
@@ -308,12 +311,14 @@ namespace RealisticBleeding.Systems
 			public void StoreIntoBuffers(CommandBuffer commandBuffer, ComputeBuffer bloodDropsBuffer, ComputeBuffer cellsBuffer)
 			{
 				var dropsIndex = 0;
-				
-				for (var z = 0; z < _dim.z; z++)
+
+				var cellCount = Dimensions.GetVolume();
+
+				for (var z = 0; z < Dimensions.z; z++)
 				{
-					for (var y = 0; y < _dim.y; y++)
+					for (var y = 0; y < Dimensions.y; y++)
 					{
-						for (var x = 0; x < _dim.x; x++)
+						for (var x = 0; x < Dimensions.x; x++)
 						{
 							var flatIndex = GetFlattenedIndex(x, y, z);
 							var drops = _grid[x, y, z];
@@ -333,18 +338,17 @@ namespace RealisticBleeding.Systems
 					}
 				}
 				
-				commandBuffer.SetComputeBufferData(cellsBuffer, CellArray);
+				commandBuffer.SetComputeBufferData(cellsBuffer, CellArray, 0, 0, cellCount);
 			}
 
 			private int GetFlattenedIndex(int x, int y, int z)
 			{
-				return z * _dim.x * _dim.y + y * _dim.x + x;
+				return z * Dimensions.x * Dimensions.y + y * Dimensions.x + x;
 			}
 
 			public void Dispose()
 			{
 				Clear();
-				_totalCellBloodDropCount = 0;
 
 				Pool.Release(this);
 			}
