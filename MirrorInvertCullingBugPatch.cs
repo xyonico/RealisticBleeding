@@ -19,9 +19,9 @@ namespace RealisticBleeding
 			private static CommandBuffer _invertCullingCommandBuffer;
 			private static CommandBuffer _restoreCullingCommandBuffer;
 
-			public static void Prefix(ScriptableRenderContext context, Camera camera, Collider ___workingArea)
+			public static void Prefix(ScriptableRenderContext context, Camera camera, bool ___active, MeshRenderer ___mirrorMesh)
 			{
-				if (___workingArea && !___workingArea.bounds.Contains(camera.transform.position))
+				if (!___active || !___mirrorMesh.isVisible)
 				{
 					return;
 				}
@@ -35,9 +35,9 @@ namespace RealisticBleeding
 				context.ExecuteCommandBuffer(_invertCullingCommandBuffer);
 			}
 
-			public static void Postfix(ScriptableRenderContext context, Camera camera, Collider ___workingArea)
+			public static void Postfix(ScriptableRenderContext context, Camera camera, bool ___active, MeshRenderer ___mirrorMesh)
 			{
-				if (___workingArea && !___workingArea.bounds.Contains(camera.transform.position))
+				if (!___active || !___mirrorMesh.isVisible)
 				{
 					return;
 				}
