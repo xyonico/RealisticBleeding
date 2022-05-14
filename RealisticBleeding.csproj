@@ -114,7 +114,7 @@
         <Compile Include="Systems\SurfaceBloodDropOptimizationSystem.cs" />
         <Compile Include="Systems\SurfaceBloodDropPhysicsSystem.cs" />
         <Compile Include="Systems\SurfaceBloodDropVelocityRandomnessSystem.cs" />
-        <Compile Include="Vector3IntExtensions.cs" />
+        <Compile Include="Vector3Extensions.cs" />
     </ItemGroup>
     <ItemGroup>
       <None Include="packages.config" />
