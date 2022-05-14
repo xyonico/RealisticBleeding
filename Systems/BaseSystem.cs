@@ -18,7 +18,7 @@ namespace RealisticBleeding.Systems
 		{
 			_entitySet = entitySet;
 
-			_profilerMarker = new ProfilerMarker(ProfilerCategory.Scripts, GetType().Name);
+			_profilerMarker = new ProfilerMarker(ProfilerCategory.Scripts, $"RealisticBleeding.{GetType().Name}.Update");
 		}
 
 		void ISystem<float>.Update(float state)

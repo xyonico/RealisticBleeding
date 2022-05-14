@@ -27,9 +27,23 @@
                 float inverseRadius;
             };
 
+            struct Cell
+            {
+                int startBloodDropIndex;
+                int count;
+            };
+
             StructuredBuffer<BloodDrop> _BloodDrops;
-            int _BloodDropCount;
+            StructuredBuffer<Cell> _Cells;
+
+            float3 _BoundsDimensions;
+            float4x4 _BoundsMatrix;
             float _Multiplier;
+
+            inline int getCellIndex(int3 coord)
+            {
+                return coord.z * _BoundsDimensions.x * _BoundsDimensions.y + coord.y * _BoundsDimensions.x + coord.x;
+            }
 
             struct appdata
             {
@@ -66,7 +80,15 @@
             {
                 float output = 0;
 
-                for (int i = 0; i < _BloodDropCount; i++)
+                float3 boundsPos = mul(_BoundsMatrix, float4(o.worldPos, 1)).xyz;
+                
+                int3 coord = floor(boundsPos * _BoundsDimensions);
+                
+                int cellIndex = getCellIndex(coord);
+
+                Cell cell = _Cells[cellIndex];
+                
+                for (int i = cell.startBloodDropIndex; i < cell.count; i++)
                 {
                     BloodDrop bloodDrop = _BloodDrops[i];
 
