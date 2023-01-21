@@ -21,26 +21,27 @@ namespace RealisticBleeding
 				}
 			}
 		}
-		
+
 		[HarmonyPatch(typeof(EffectReveal), "Play")]
-		public static class PlayPatch
+		public static class PlayPostPatch
 		{
 			public static EntitySet ActiveBleeders { get; set; }
-			
+
 			public static void Postfix(EffectReveal __instance)
 			{
 				if (!GameManager.options.enableCharacterReveal) return;
 
 				var collisionInstance = AddEffectPatch.LastCollisionInstance;
-				
+
 				if (collisionInstance == null) return;
 
 				var ragdollPart = collisionInstance.damageStruct.hitRagdollPart;
 				if (ragdollPart == null) return;
-				
+
 				var creature = ragdollPart.ragdoll.creature;
 
-				var pressureIntensity = Catalog.GetCollisionStayRatio(collisionInstance.pressureRelativeVelocity.magnitude);
+				var pressureIntensity =
+					Catalog.GetCollisionStayRatio(collisionInstance.pressureRelativeVelocity.magnitude);
 
 				var damageType = collisionInstance.damageStruct.damageType;
 				if (damageType == DamageType.Unknown || damageType == DamageType.Energy) return;
@@ -119,12 +120,14 @@ namespace RealisticBleeding
 
 						if (collisionInstance.intensity > 0.5f)
 						{
-							NoseBleed.SpawnOnDelayed(creature, Random.Range(1f, 2), intensity, intensity, Mathf.Max(0.3f, intensity));
+							NoseBleed.SpawnOnDelayed(creature, Random.Range(1f, 2), intensity, intensity,
+								Mathf.Max(0.3f, intensity));
 						}
 					}
 				}
 
-				if (EntryPoint.Configuration.MouthBleedsEnabled && damageType == DamageType.Pierce && ragdollPart.type == RagdollPart.Type.Torso)
+				if (EntryPoint.Configuration.MouthBleedsEnabled && damageType == DamageType.Pierce &&
+				    ragdollPart.type == RagdollPart.Type.Torso)
 				{
 					if (intensity > 0.2f)
 					{
@@ -146,15 +149,34 @@ namespace RealisticBleeding
 				}
 
 				var bleeder = SpawnBleeder(position, rotation, ragdollPart.transform,
-						durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
-				
+					durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
+
 				bleeder.Set(new DisposeWithCreature(creature));
 			}
 
 			private static Entity SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
 				float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2 dimensions)
 			{
-				return Bleeder.Spawn(parent, position, rotation, dimensions, frequencyMultiplier, sizeMultiplier, durationMultiplier);
+				return Bleeder.Spawn(parent, position, rotation, dimensions, frequencyMultiplier, sizeMultiplier,
+					durationMultiplier);
+			}
+		}
+
+		[HarmonyPatch(typeof(EffectReveal), "Play")]
+		public static class PlayPrePatch
+		{
+			public static void Prefix(EffectReveal __instance)
+			{
+				var controllers = __instance.revealMaterialControllers;
+
+				for (var i = controllers.Count - 1; i >= 0; i--)
+				{
+					var controller = controllers[i];
+					if (controller == null || controller.GetRenderer() == null)
+					{
+						controllers.RemoveAt(i);
+					}
+				}
 			}
 		}
 	}

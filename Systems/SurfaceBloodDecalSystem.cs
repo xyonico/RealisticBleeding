@@ -31,11 +31,13 @@ namespace RealisticBleeding.Systems
 		private readonly ComputeBuffer _bloodDropsBuffer;
 		private readonly ComputeBuffer _cellsBuffer;
 		private readonly CommandBuffer _commandBuffer;
-		
-		private readonly ProfilerMarker _updateProfilerMarker = new ProfilerMarker(ProfilerCategory.Scripts, $"RealisticBleeding.{nameof(SurfaceBloodDecalSystem)}.Update");
+
+		private readonly ProfilerMarker _updateProfilerMarker = new ProfilerMarker(ProfilerCategory.Scripts,
+			$"RealisticBleeding.{nameof(SurfaceBloodDecalSystem)}.Update");
 
 		private readonly ProfilerMarker _renderingProfilerMarker =
-			new ProfilerMarker(ProfilerCategory.Scripts, $"RealisticBleeding.{nameof(SurfaceBloodDecalSystem)}.OnBeginFrameRendering");
+			new ProfilerMarker(ProfilerCategory.Scripts,
+				$"RealisticBleeding.{nameof(SurfaceBloodDecalSystem)}.OnBeginFrameRendering");
 
 		private Material _decalMaterial;
 
@@ -48,7 +50,8 @@ namespace RealisticBleeding.Systems
 
 			_commandBuffer = new CommandBuffer { name = "Realistic Blood - Decal Drawing" };
 
-			Catalog.LoadAssetAsync("RealisticBloodDecal", (Shader shader) => { _decalMaterial = new Material(shader); }, null);
+			Catalog.LoadAssetAsync("RealisticBloodDecal", (Shader shader) => { _decalMaterial = new Material(shader); },
+				null);
 		}
 
 		public override void Dispose()
@@ -99,7 +102,26 @@ namespace RealisticBleeding.Systems
 						{
 							var renderer = rendererData.renderer;
 
-							if (!renderer.isVisible) continue;
+							var isVisible = renderer.isVisible;
+
+							if (!isVisible && EntryPoint.Configuration.UpdateDecalsWhenFarAway)
+							{
+								// Check if this renderer has other LODs and check if any of those are visible.
+								if (renderer.TryGetComponent(out RevealDecalLODS revealDecalLODS))
+								{
+									foreach (var (lodRenderer, _) in revealDecalLODS.LODRenderers)
+									{
+										if (lodRenderer.isVisible)
+										{
+											isVisible = true;
+
+											break;
+										}
+									}
+								}
+							}
+
+							if (!isVisible) continue;
 
 							var bounds = renderer.bounds;
 							if (!bounds.Contains(worldPos)) continue;
@@ -109,7 +131,7 @@ namespace RealisticBleeding.Systems
 								bloodDrops = BloodDropGrid.Get();
 								_bloodDrops[revealMaterialController] = bloodDrops;
 							}
-							
+
 							bloodDrops.SetWorldBounds(bounds);
 
 							bloodDrops.Add(in bloodDropGPU, worldPos);
@@ -137,17 +159,17 @@ namespace RealisticBleeding.Systems
 						bloodDropsGrid.StoreIntoBuffers(_commandBuffer, _bloodDropsBuffer, _cellsBuffer);
 
 						var shouldClear = revealMaterialController.ActivateRevealMaterials();
-						
+
 						_commandBuffer.SetProjectionMatrix(projectionMatrix);
 						_commandBuffer.SetRenderTarget(revealMaterialController.MaskTexture);
 						_commandBuffer.SetGlobalBuffer(BloodDropsID, _bloodDropsBuffer);
 						_commandBuffer.SetGlobalBuffer(CellsID, _cellsBuffer);
 						_commandBuffer.SetGlobalMatrix(BoundsMatrixID, bloodDropsGrid.Matrix);
 
-						Vector4 boundsDimensions = (Vector3) bloodDropsGrid.Dimensions;
+						Vector4 boundsDimensions = (Vector3)bloodDropsGrid.Dimensions;
 						_commandBuffer.SetGlobalVector(BoundsDimensionsID, boundsDimensions);
 						_commandBuffer.SetGlobalInt(BoundsVolumeID, bloodDropsGrid.Dimensions.GetVolume());
-						
+
 						if (shouldClear)
 						{
 							_commandBuffer.ClearRenderTarget(false, true, Color.clear);
@@ -204,8 +226,8 @@ namespace RealisticBleeding.Systems
 
 			public CellGPU(int startIndex, int count)
 			{
-				StartIndex = (uint) startIndex;
-				Count = (uint) count;
+				StartIndex = (uint)startIndex;
+				Count = (uint)count;
 			}
 		}
 
@@ -213,19 +235,23 @@ namespace RealisticBleeding.Systems
 		{
 			private static readonly ObjectPool<BloodDropGrid> Pool = new ObjectPool<BloodDropGrid>(null, null);
 
-			private const string ProfilerMarkerPrefix = "RealisticBleeding." + nameof(SurfaceBloodDecalSystem) + "." + nameof(BloodDropGrid) + ".";
+			private const string ProfilerMarkerPrefix = "RealisticBleeding." + nameof(SurfaceBloodDecalSystem) + "." +
+			                                            nameof(BloodDropGrid) + ".";
 
 			private static readonly ProfilerMarker AddProfilerMarker =
 				new ProfilerMarker(ProfilerCategory.Scripts, ProfilerMarkerPrefix + nameof(Add));
 
 			private static readonly ProfilerMarker AddToCellProfilerMarker =
 				new ProfilerMarker(ProfilerCategory.Scripts, ProfilerMarkerPrefix + nameof(AddToCell));
-			
+
 			private static readonly ProfilerMarker SetWorldBoundsProfilerMarker =
 				new ProfilerMarker(ProfilerCategory.Scripts, ProfilerMarkerPrefix + nameof(SetWorldBounds));
 
 			private static readonly CellGPU[] CellArray = new CellGPU[MaxCellCount];
-				
+
+			private static readonly Vector3Int MaxGridSize =
+				new Vector3Int(MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension);
+
 			private readonly List<BloodDropGPU>[,,] _grid;
 
 			public Matrix4x4 Matrix { get; private set; }
@@ -241,7 +267,7 @@ namespace RealisticBleeding.Systems
 				// Prewarm
 				const int prewarmCount = 24;
 				var list = new List<BloodDropGrid>(prewarmCount);
-				
+
 				for (var i = 0; i < prewarmCount; i++)
 				{
 					list.Add(Pool.Get());
@@ -251,10 +277,10 @@ namespace RealisticBleeding.Systems
 				{
 					Pool.Release(bloodDropGrid);
 				}
-				
+
 				list.Clear();
 			}
-			
+
 			public static BloodDropGrid Get()
 			{
 				var grid = Pool.Get();
@@ -269,9 +295,11 @@ namespace RealisticBleeding.Systems
 					var size = bounds.size;
 					var min = bounds.min;
 
-					var dim = Vector3Int.CeilToInt(new Vector3(size.x / CellSize, size.y / CellSize, size.z / CellSize));
+					var dim = Vector3Int.CeilToInt(new Vector3(size.x / CellSize, size.y / CellSize,
+						size.z / CellSize));
 
-					dim = Vector3Int.Min(dim, new Vector3Int(MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension));
+					dim = Vector3Int.Min(dim,
+						new Vector3Int(MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension));
 
 					Dimensions = dim;
 					Matrix = Matrix4x4.TRS(min, Quaternion.identity, size).inverse;
@@ -285,6 +313,9 @@ namespace RealisticBleeding.Systems
 					var boundsStartPos = Matrix.MultiplyPoint3x4(worldPos).ScaledBy(Dimensions);
 
 					var startPosCoords = Vector3Int.FloorToInt(boundsStartPos);
+
+					startPosCoords = Vector3Int.Max(Vector3Int.zero, startPosCoords);
+					startPosCoords = Vector3Int.Min(MaxGridSize, startPosCoords);
 
 					AddToCell(in bloodDrop, startPosCoords);
 				}
@@ -320,7 +351,8 @@ namespace RealisticBleeding.Systems
 				}
 			}
 
-			public void StoreIntoBuffers(CommandBuffer commandBuffer, ComputeBuffer bloodDropsBuffer, ComputeBuffer cellsBuffer)
+			public void StoreIntoBuffers(CommandBuffer commandBuffer, ComputeBuffer bloodDropsBuffer,
+				ComputeBuffer cellsBuffer)
 			{
 				var dropsIndex = 0;
 
@@ -340,14 +372,14 @@ namespace RealisticBleeding.Systems
 								commandBuffer.SetComputeBufferData(bloodDropsBuffer, drops, 0, dropsIndex, drops.Count);
 
 								dropsIndex += drops.Count;
-								cellGPU.Count = (uint) drops.Count;
+								cellGPU.Count = (uint)drops.Count;
 							}
 
 							CellArray[flatIndex] = cellGPU;
 						}
 					}
 				}
-				
+
 				var cellCount = Dimensions.GetVolume();
 				commandBuffer.SetComputeBufferData(cellsBuffer, CellArray, 0, 0, cellCount);
 			}

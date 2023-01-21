@@ -88,7 +88,7 @@ namespace RealisticBleeding
 			var fallingBloodDropSet = World.GetEntities().With<BloodDrop>().Without<SurfaceCollider>().AsSet();
 
 			var bleedersSet = World.GetEntities().With<Bleeder>().AsSet();
-			EffectRevealPatches.PlayPatch.ActiveBleeders = bleedersSet;
+			EffectRevealPatches.PlayPostPatch.ActiveBleeders = bleedersSet;
 
 			_fixedUpdateSystem = new SequentialSystem<float>(
 				new BleederSystem(World, Configuration.BloodAmountMultiplier, Configuration.BloodStreakWidthMultiplier),

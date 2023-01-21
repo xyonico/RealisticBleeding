@@ -7,6 +7,7 @@
             "RenderType"="Opaque"
         }
 
+        Conservative True
         Cull Off
         ZTest Always
         ZWrite Off
