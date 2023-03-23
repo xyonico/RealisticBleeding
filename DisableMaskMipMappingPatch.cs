@@ -1,5 +1,5 @@
 using HarmonyLib;
-using RainyReignGames.RevealMask;
+using ThunderRoad.Reveal;
 
 namespace RealisticBleeding
 {

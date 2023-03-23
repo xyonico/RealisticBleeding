@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using DefaultEcs;
 using DefaultEcs.System;
-using RainyReignGames.RevealMask;
 using RealisticBleeding.Components;
 using ThunderRoad;
+using ThunderRoad.Reveal;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -176,7 +176,7 @@ namespace RealisticBleeding.Systems
 						}
 
 						var renderer = revealMaterialController.GetRenderer();
-						var submeshCount = revealMaterialController.GetSubmeshCount();
+						var submeshCount = revealMaterialController.GetSubMeshCount();
 
 						for (var submeshIndex = 0; submeshIndex < submeshCount; submeshIndex++)
 						{

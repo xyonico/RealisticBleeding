@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using HarmonyLib;
-using RainyReignGames.RevealMask;
 using ThunderRoad;
-using ThunderRoad.Plugins;
+using ThunderRoad.Reveal;
 using UnityEngine;
 using Object = UnityEngine.Object;
 

@@ -39,8 +39,11 @@
           <HintPath>packages\DefaultEcs.0.16.1\lib\netstandard2.0\DefaultEcs.dll</HintPath>
           <Private>True</Private>
         </Reference>
-        <Reference Include="RainyReignGames.Reveal, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\RainyReignGames.Reveal.dll</HintPath>
+        <Reference Include="ThunderRoad.MaterialInstance">
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\ThunderRoad.MaterialInstance.dll</HintPath>
+        </Reference>
+        <Reference Include="ThunderRoad.Reveal, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\ThunderRoad.Reveal.dll</HintPath>
         </Reference>
         <Reference Include="System">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\System.dll</HintPath>
@@ -63,9 +66,6 @@
         </Reference>
         <Reference Include="ThunderRoad, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
-        </Reference>
-        <Reference Include="ThunderRoad.Plugins, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
-            <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\ThunderRoad.Plugins.dll</HintPath>
         </Reference>
         <Reference Include="Unity.RenderPipelines.Core.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
