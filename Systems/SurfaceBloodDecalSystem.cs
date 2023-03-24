@@ -8,6 +8,7 @@ using ThunderRoad.Reveal;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
+using Object = System.Object;
 
 namespace RealisticBleeding.Systems
 {
@@ -41,6 +42,8 @@ namespace RealisticBleeding.Systems
 
 		private Material _decalMaterial;
 
+		private bool _isFirstFrame = true;
+
 		public SurfaceBloodDecalSystem(EntitySet set) : base(set)
 		{
 			RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
@@ -49,9 +52,6 @@ namespace RealisticBleeding.Systems
 			_cellsBuffer = new ComputeBuffer(MaxCellCount, CellGPU.SizeOf);
 
 			_commandBuffer = new CommandBuffer { name = "Realistic Blood - Decal Drawing" };
-
-			Catalog.LoadAssetAsync("RealisticBloodDecal", (Shader shader) => { _decalMaterial = new Material(shader); },
-				null);
 		}
 
 		public override void Dispose()
@@ -65,6 +65,19 @@ namespace RealisticBleeding.Systems
 
 		protected override void Update(float deltaTime, ReadOnlySpan<Entity> entities)
 		{
+			if (_isFirstFrame)
+			{
+				_isFirstFrame = false;
+
+				Catalog.LoadAssetAsync("RealisticBloodDecal",
+					(Shader shader) => { _decalMaterial = new Material(shader); }, null);
+			}
+
+			if (ReferenceEquals(_decalMaterial, null))
+			{
+				return;
+			}
+
 			using (_updateProfilerMarker.Auto())
 			{
 				// Prepare draw call data for later
@@ -369,7 +382,7 @@ namespace RealisticBleeding.Systems
 
 							if (drops != null && drops.Count > 0)
 							{
-								commandBuffer.SetComputeBufferData(bloodDropsBuffer, drops, 0, dropsIndex, drops.Count);
+								commandBuffer.SetBufferData(bloodDropsBuffer, drops, 0, dropsIndex, drops.Count);
 
 								dropsIndex += drops.Count;
 								cellGPU.Count = (uint)drops.Count;
@@ -381,7 +394,7 @@ namespace RealisticBleeding.Systems
 				}
 
 				var cellCount = Dimensions.GetVolume();
-				commandBuffer.SetComputeBufferData(cellsBuffer, CellArray, 0, 0, cellCount);
+				commandBuffer.SetBufferData(cellsBuffer, CellArray, 0, 0, cellCount);
 			}
 
 			private int GetFlattenedIndex(int x, int y, int z)

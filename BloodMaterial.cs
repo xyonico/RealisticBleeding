@@ -15,7 +15,7 @@ namespace RealisticBleeding
 					return _material;
 				}
 			
-				var shader = Shader.Find("Universal Render Pipeline/Lit");
+				var shader = Shader.Find("ThunderRoad/Lit");
 				_material = new Material(shader);
 
 				var color = new Color(0.38f, 0f, 0f);

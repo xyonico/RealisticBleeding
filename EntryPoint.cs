@@ -35,7 +35,7 @@ namespace RealisticBleeding
 		{
 			try
 			{
-				var configPath = Path.Combine(Path.GetDirectoryName(typeof(EntryPoint).Assembly.Location), "config.yaml");
+				var configPath = Path.Combine(Application.streamingAssetsPath, "Mods/RealisticBleeding/config.yaml");
 
 				if (!File.Exists(configPath))
 				{
@@ -108,6 +108,7 @@ namespace RealisticBleeding
 
 			World.Subscribe((in BloodDropHitSurface hitSurface) =>
 			{
+				Debug.Log("Blood drop hit surface");
 				var surfaceCollider = new SurfaceCollider(hitSurface.Collider, Vector3.zero);
 				ref var bloodDrop = ref hitSurface.Entity.Get<BloodDrop>();
 
@@ -151,7 +152,14 @@ namespace RealisticBleeding
 
 		internal static void OnUpdate()
 		{
-			_updateSystem.Update(Time.deltaTime);
+			try
+			{
+				_updateSystem.Update(Time.deltaTime);
+			}
+			catch (Exception e)
+			{
+				Debug.LogException(e);
+			}
 		}
 
 		internal static void OnFixedUpdate()
