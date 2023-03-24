@@ -108,7 +108,6 @@ namespace RealisticBleeding
 
 			World.Subscribe((in BloodDropHitSurface hitSurface) =>
 			{
-				Debug.Log("Blood drop hit surface");
 				var surfaceCollider = new SurfaceCollider(hitSurface.Collider, Vector3.zero);
 				ref var bloodDrop = ref hitSurface.Entity.Get<BloodDrop>();
 
