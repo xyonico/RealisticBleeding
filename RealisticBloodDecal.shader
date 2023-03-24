@@ -101,8 +101,10 @@
                 {
                     discard;
                 }
+
+                uint count = min(cell.count, 8);
                 
-                for (uint i = 0; i < cell.count; i++)
+                for (uint i = 0; i < count; i++)
                 {
                     BloodDrop bloodDrop = _BloodDrops[cell.startBloodDropIndex + i];
 
