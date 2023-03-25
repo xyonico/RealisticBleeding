@@ -3,7 +3,6 @@ using HarmonyLib;
 using ThunderRoad;
 using ThunderRoad.Reveal;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace RealisticBleeding
 {
@@ -44,6 +43,14 @@ namespace RealisticBleeding
 					if (parent == null || parent.childCount == 1) return true;
 
 					var lodRenderers = new List<(Renderer, MaterialInstance)>();
+					
+					// From the original Awake:
+					__instance.revealMaterialController = __instance.gameObject.AddComponent<RevealMaterialController>();
+					__instance.revealMaterialController.width = (int) __instance.maskWidth;
+					__instance.revealMaterialController.height = (int) __instance.maskHeight;
+					__instance.revealMaterialController.maskPropertyName = "_RevealMask";
+					__instance.revealMaterialController.restoreMaterialsOnReset = false;
+					__instance.revealMaterialController.renderTextureFormat = RenderTextureFormat.ARGB64;
 
 					for (var i = 0; i < parent.childCount; i++)
 					{
@@ -60,20 +67,18 @@ namespace RealisticBleeding
 							}
 
 							lodRenderers.Add((siblingRenderer, materialInstance));
+
+							if (sibling.TryGetComponent(out RevealDecal siblingDecal))
+							{
+								siblingDecal.revealMaterialController = __instance.revealMaterialController;
+							}
 						}
 					}
 
 					RevealDecalLODS.AddTo(__instance.gameObject, lodRenderers);
 				}
-				else
-				{
-					// This is greater than LOD0, so remove it.
-					Object.Destroy(__instance);
 
-					return false;
-				}
-
-				return true;
+				return false;
 			}
 
 			private static bool IsPartOfLOD(GameObject gameObject, out int lod, out string nameWithoutLodNumber)
