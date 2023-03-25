@@ -23,10 +23,24 @@ namespace RealisticBleeding
 		}
 
 		[HarmonyPatch(typeof(EffectReveal), "Play")]
-		public static class PlayPostPatch
+		public static class PlayPatch
 		{
 			public static EntitySet ActiveBleeders { get; set; }
 
+			public static void Prefix(EffectReveal __instance)
+			{
+				var controllers = __instance.revealMaterialControllers;
+
+				for (var i = controllers.Count - 1; i >= 0; i--)
+				{
+					var controller = controllers[i];
+					if (controller == null || controller.GetRenderer() == null)
+					{
+						controllers.RemoveAt(i);
+					}
+				}
+			}
+			
 			public static void Postfix(EffectReveal __instance)
 			{
 				if (!GameManager.options.enableCharacterReveal) return;
@@ -159,24 +173,6 @@ namespace RealisticBleeding
 			{
 				return Bleeder.Spawn(parent, position, rotation, dimensions, frequencyMultiplier, sizeMultiplier,
 					durationMultiplier);
-			}
-		}
-
-		[HarmonyPatch(typeof(EffectReveal), "Play")]
-		public static class PlayPrePatch
-		{
-			public static void Prefix(EffectReveal __instance)
-			{
-				var controllers = __instance.revealMaterialControllers;
-
-				for (var i = controllers.Count - 1; i >= 0; i--)
-				{
-					var controller = controllers[i];
-					if (controller == null || controller.GetRenderer() == null)
-					{
-						controllers.RemoveAt(i);
-					}
-				}
 			}
 		}
 	}
