@@ -1,6 +1,7 @@
 using System;
 using DefaultEcs;
 using RealisticBleeding.Components;
+using ThunderRoad;
 using UnityEngine;
 
 namespace RealisticBleeding.Systems
@@ -12,12 +13,17 @@ namespace RealisticBleeding.Systems
 		private static readonly Collider[] _colliders = new Collider[32];
 
 		private readonly SphereCollider _collider;
-		private readonly float _surfaceFrictionMultiplier;
+		
+		[ModOption(category = "Multipliers", name = "Blood Surface Friction",
+			tooltip = "Controls the amount of surface friction applied to blood droplets.\n" +
+			          "Lower friction means blood droplets will move faster.",
+			valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
+			defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 23)]
+		private static float BloodSurfaceFrictionMultiplier { get; set; }
 
-		public SurfaceBloodDropPhysicsSystem(EntitySet entitySet, SphereCollider collider, float surfaceFrictionMultiplier) : base(entitySet)
+		public SurfaceBloodDropPhysicsSystem(EntitySet entitySet, SphereCollider collider) : base(entitySet)
 		{
 			_collider = collider;
-			_surfaceFrictionMultiplier = surfaceFrictionMultiplier;
 		}
 
 		protected override void Update(float deltaTime, ReadOnlySpan<Entity> entities)
@@ -47,7 +53,7 @@ namespace RealisticBleeding.Systems
 
 				Depenetrate(ref worldPos, layerMasks.Surface, ref bloodDrop, ref surfaceCollider);
 
-				bloodDrop.Velocity *= 1 - Time.deltaTime * SurfaceDrag * _surfaceFrictionMultiplier;
+				bloodDrop.Velocity *= 1 - Time.deltaTime * SurfaceDrag * BloodSurfaceFrictionMultiplier;
 
 				worldPos += bloodDrop.Velocity * deltaTime;
 

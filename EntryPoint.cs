@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using DefaultEcs;
 using DefaultEcs.System;
 using HarmonyLib;
@@ -8,7 +7,6 @@ using RealisticBleeding.Messages;
 using RealisticBleeding.Systems;
 using ThunderRoad;
 using UnityEngine;
-using YamlDotNet.Serialization;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
@@ -20,7 +18,12 @@ namespace RealisticBleeding
 
 		private static bool _hasLoaded;
 
-		public static Configuration Configuration { get; private set; }
+		[ModOption(category = "Features",
+			name = "Pause Simulation",
+			tooltip =
+				"Pauses all blood droplet simulation if enabled.\nGood for quickly disabling the mod temporarily to see the performance difference.",
+			order = 0)]
+		public static bool PauseSimulation { get; set; }
 
 		public static readonly World World = new World();
 
@@ -33,26 +36,6 @@ namespace RealisticBleeding
 
 		internal static void OnLoaded()
 		{
-			try
-			{
-				var configPath = Path.Combine(Application.streamingAssetsPath, "Mods/RealisticBleeding/config.yaml");
-
-				if (!File.Exists(configPath))
-				{
-					Configuration = new Configuration();
-				}
-				else
-				{
-					var deserializer = new DeserializerBuilder().Build();
-					Configuration = deserializer.Deserialize<Configuration>(File.ReadAllText(configPath));
-				}
-			}
-			catch (Exception e)
-			{
-				Debug.LogException(e);
-
-				Configuration = new Configuration();
-			}
 
 			if (_hasLoaded) return;
 			_hasLoaded = true;
@@ -62,7 +45,8 @@ namespace RealisticBleeding
 			var harmony = new Harmony(HarmonyID);
 			harmony.PatchAll(typeof(EntryPoint).Assembly);
 
-			var surfaceLayerMask = LayerMask.GetMask(nameof(LayerName.Avatar), nameof(LayerName.Ragdoll), nameof(LayerName.NPC),
+			var surfaceLayerMask = LayerMask.GetMask(nameof(LayerName.Avatar), nameof(LayerName.Ragdoll),
+				nameof(LayerName.NPC),
 				nameof(LayerName.PlayerHandAndFoot));
 			var environmentLayerMask = LayerMask.GetMask(nameof(LayerName.Default), "NoLocomotion");
 
@@ -91,11 +75,11 @@ namespace RealisticBleeding
 			EffectRevealPatches.PlayPatch.ActiveBleeders = bleedersSet;
 
 			_fixedUpdateSystem = new SequentialSystem<float>(
-				new BleederSystem(World, Configuration.BloodAmountMultiplier, Configuration.BloodStreakWidthMultiplier),
+				new BleederSystem(World),
 				new FallingBloodDropSystem(fallingBloodDropSet),
-				new SurfaceBloodDropOptimizationSystem(surfaceBloodDropSet, Configuration.MaxActiveBloodDrips),
+				new SurfaceBloodDropOptimizationSystem(surfaceBloodDropSet),
 				new SurfaceBloodDropVelocityRandomnessSystem(shouldUpdateSurfaceBloodDropSet),
-				new SurfaceBloodDropPhysicsSystem(shouldUpdateSurfaceBloodDropSet, Collider, Configuration.BloodSurfaceFrictionMultiplier),
+				new SurfaceBloodDropPhysicsSystem(shouldUpdateSurfaceBloodDropSet, Collider),
 				new BloodDropDrippingSystem(shouldUpdateSurfaceBloodDropSet),
 				new SurfaceBloodDecalSystem(shouldUpdateSurfaceBloodDropSet),
 				new LifetimeSystem(World.GetEntities().With<Lifetime>().AsSet()),
@@ -135,7 +119,8 @@ namespace RealisticBleeding
 				_bloodDropDecalData = Catalog.GetData<EffectData>("DropBlood");
 			}
 
-			var rotation = Quaternion.AngleAxis(Random.Range(0f, 360f), message.Normal) * Quaternion.LookRotation(message.Normal);
+			var rotation = Quaternion.AngleAxis(Random.Range(0f, 360f), message.Normal) *
+			               Quaternion.LookRotation(message.Normal);
 			var instance = _bloodDropDecalData.Spawn(bloodDrop.Position, rotation);
 			instance.Play();
 
@@ -151,6 +136,8 @@ namespace RealisticBleeding
 
 		internal static void OnUpdate()
 		{
+			if (PauseSimulation) return;
+
 			try
 			{
 				_updateSystem.Update(Time.deltaTime);
@@ -163,6 +150,8 @@ namespace RealisticBleeding
 
 		internal static void OnFixedUpdate()
 		{
+			if (PauseSimulation) return;
+
 			_fixedUpdateSystem.Update(Time.deltaTime);
 		}
 

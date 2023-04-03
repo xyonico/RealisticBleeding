@@ -8,6 +8,40 @@ namespace RealisticBleeding
 {
 	public static class EffectRevealPatches
 	{
+		private static bool _bleedFromWounds;
+
+		[ModOption(category = "Features", name = "Bleeding From Wounds",
+			tooltip = "Whether wounds should bleed.\nNose and mouth bleed can still be enabled separately from this.",
+			defaultValueIndex = 1, order = 1)]
+		private static bool BleedFromWounds
+		{
+			get => _bleedFromWounds;
+			set
+			{
+				_bleedFromWounds = value;
+
+				if (!_bleedFromWounds)
+				{
+					var bleeders = EntryPoint.World.GetEntities().With<Bleeder>().AsSet();
+
+					foreach (var bleeder in bleeders.GetEntities())
+					{
+						bleeder.Dispose();
+					}
+				}
+			}
+		}
+
+		[ModOption(category = "Features", name = "Nose Bleeds",
+			tooltip = "Whether noses should bleed when enough blunt force is applied to the head.",
+			defaultValueIndex = 1, order = 2)]
+		private static bool NoseBleedsEnabled { get; set; }
+		
+		[ModOption(category = "Features", name = "Mouth Bleeds",
+			tooltip = "Whether blood should come from the mouth when torso is pierced.",
+			defaultValueIndex = 1, order = 3)]
+		private static bool MouthBleedsEnabled { get; set; }
+
 		[HarmonyPatch(typeof(EffectInstance), "AddEffect")]
 		public static class AddEffectPatch
 		{
@@ -40,7 +74,7 @@ namespace RealisticBleeding
 					}
 				}
 			}
-			
+
 			public static void Postfix(EffectReveal __instance)
 			{
 				if (!GameManager.options.enableCharacterReveal) return;
@@ -120,7 +154,7 @@ namespace RealisticBleeding
 
 				if (damageType == DamageType.Blunt && ragdollPart.type == RagdollPart.Type.Head)
 				{
-					if (EntryPoint.Configuration.NoseBleedsEnabled)
+					if (NoseBleedsEnabled)
 					{
 						if (NoseBleed.TryGetNosePosition(creature, out var nosePosition))
 						{
@@ -140,7 +174,7 @@ namespace RealisticBleeding
 					}
 				}
 
-				if (EntryPoint.Configuration.MouthBleedsEnabled && damageType == DamageType.Pierce &&
+				if (MouthBleedsEnabled && damageType == DamageType.Pierce &&
 				    ragdollPart.type == RagdollPart.Type.Torso)
 				{
 					if (intensity > 0.2f)
@@ -150,7 +184,7 @@ namespace RealisticBleeding
 					}
 				}
 
-				if (!EntryPoint.Configuration.BleedingFromWoundsEnabled) return;
+				if (!BleedFromWounds) return;
 
 				foreach (var entity in ActiveBleeders.GetEntities())
 				{

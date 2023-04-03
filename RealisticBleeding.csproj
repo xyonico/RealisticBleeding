@@ -74,10 +74,6 @@
         <Reference Include="UnityEngine.PhysicsModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\UnityEngine.PhysicsModule.dll</HintPath>
         </Reference>
-        <Reference Include="YamlDotNet, Version=11.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e">
-          <HintPath>packages\YamlDotNet.11.2.1\lib\net45\YamlDotNet.dll</HintPath>
-          <Private>True</Private>
-        </Reference>
     </ItemGroup>
     <ItemGroup>
         <Compile Include="BloodMaterial.cs" />
@@ -89,12 +85,12 @@
         <Compile Include="Components\Lifetime.cs" />
         <Compile Include="Components\ShouldUpdate.cs" />
         <Compile Include="Components\SurfaceCollider.cs" />
-        <Compile Include="Configuration.cs" />
         <Compile Include="CreatureDespawnHook.cs" />
         <Compile Include="DecalResolutionPatch.cs" />
         <Compile Include="DisableMaskMipMappingPatch.cs" />
         <Compile Include="EffectRevealPatches.cs" />
         <Compile Include="EntryPoint.cs" />
+        <Compile Include="ModOptionPercentage.cs" />
         <Compile Include="Script.cs" />
         <Compile Include="Messages\BloodDropHitEnvironmentMessage.cs" />
         <Compile Include="Messages\BloodDropHitSurfaceMessage.cs" />

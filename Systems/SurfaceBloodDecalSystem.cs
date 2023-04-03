@@ -8,7 +8,6 @@ using ThunderRoad.Reveal;
 using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
-using Object = System.Object;
 
 namespace RealisticBleeding.Systems
 {
@@ -43,6 +42,11 @@ namespace RealisticBleeding.Systems
 		private Material _decalMaterial;
 
 		private bool _isFirstFrame = true;
+		
+		[ModOption(category = "Performance", name = "Update Decals When Far Away",
+			tooltip = "Whether decals should be updated on low LOD models too.\nDisabling this can improve performance.",
+			defaultValueIndex = 1, order = 12)]
+		private static bool UpdateDecalsWhenFarAway { get; set; }
 
 		public SurfaceBloodDecalSystem(EntitySet set) : base(set)
 		{
@@ -117,7 +121,7 @@ namespace RealisticBleeding.Systems
 
 							var isVisible = renderer.isVisible;
 
-							if (!isVisible && EntryPoint.Configuration.UpdateDecalsWhenFarAway)
+							if (!isVisible && UpdateDecalsWhenFarAway)
 							{
 								// Check if this renderer has other LODs and check if any of those are visible.
 								if (renderer.TryGetComponent(out RevealDecalLODS revealDecalLODS))

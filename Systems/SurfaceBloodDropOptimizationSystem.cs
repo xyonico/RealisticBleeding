@@ -1,18 +1,38 @@
 using System;
 using DefaultEcs;
 using RealisticBleeding.Components;
+using ThunderRoad;
 
 namespace RealisticBleeding.Systems
 {
 	public class SurfaceBloodDropOptimizationSystem : BaseSystem
 	{
-		private readonly int _maxBloodDrops;
+		private static ModOptionInt[] GetMaxActiveBloodDropValues()
+		{
+			Span<int> values = stackalloc int[] { 5, 10, 20, 30, 40, 50, 75, 100, 1000 };
+
+			var array = new ModOptionInt[values.Length];
+
+			for (var i = 0; i < array.Length; i++)
+			{
+				var value = values[i];
+				array[i] = new ModOptionInt(value.ToString(), value);
+			}
+
+			return array;
+		}
+		
+		[ModOption(category = "Performance", name = "Max Active Blood Drops",
+			tooltip =
+				"The max number of blood drops that can be updated each frame.\n" +
+				"If the number of blood drops exceeds this, the blood simulation will slow down to maintain performance.",
+			order = 10, valueSourceName = nameof(GetMaxActiveBloodDropValues), defaultValueIndex = 2)]
+		private static int MaxActiveBloodDrops { get; set; }
 
 		private static int _currentIndex;
-		
-		public SurfaceBloodDropOptimizationSystem(EntitySet entitySet, int maxBloodDrops) : base(entitySet)
+
+		public SurfaceBloodDropOptimizationSystem(EntitySet entitySet) : base(entitySet)
 		{
-			_maxBloodDrops = maxBloodDrops;
 		}
 
 		protected override void Update(float deltaTime, ReadOnlySpan<Entity> entities)
@@ -36,7 +56,7 @@ namespace RealisticBleeding.Systems
 				{
 					_currentIndex = 0;
 				}
-			} while (updateCount < _maxBloodDrops && _currentIndex != startIndex);
+			} while (updateCount < MaxActiveBloodDrops && _currentIndex != startIndex);
 		}
 	}
 }
