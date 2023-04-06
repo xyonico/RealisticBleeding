@@ -13,10 +13,11 @@ namespace RealisticBleeding.Systems
 		private static readonly Collider[] _colliders = new Collider[32];
 
 		private readonly SphereCollider _collider;
-		
-		[ModOption(category = "Multipliers", name = "Blood Surface Friction",
-			tooltip = "Controls the amount of surface friction applied to blood droplets.\n" +
-			          "Lower friction means blood droplets will move faster.",
+
+		[ModOptionCategory("Multipliers", 2)]
+		[ModOption("Blood Surface Friction",
+			"Controls the amount of surface friction applied to blood droplets.\n" +
+			"Lower friction means blood droplets will move faster.",
 			valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
 			defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 23)]
 		private static float BloodSurfaceFrictionMultiplier { get; set; }
@@ -74,11 +75,13 @@ namespace RealisticBleeding.Systems
 			}
 		}
 
-		private bool Depenetrate(ref Vector3 worldPos, LayerMask surfaceLayerMask, ref BloodDrop bloodDrop, ref SurfaceCollider surfaceCollider)
+		private bool Depenetrate(ref Vector3 worldPos, LayerMask surfaceLayerMask, ref BloodDrop bloodDrop,
+			ref SurfaceCollider surfaceCollider)
 		{
 			var any = false;
 
-			var count = Physics.OverlapSphereNonAlloc(worldPos, _collider.radius, _colliders, surfaceLayerMask, QueryTriggerInteraction.Ignore);
+			var count = Physics.OverlapSphereNonAlloc(worldPos, _collider.radius, _colliders, surfaceLayerMask,
+				QueryTriggerInteraction.Ignore);
 
 			for (var i = 0; i < count; i++)
 			{
@@ -87,8 +90,8 @@ namespace RealisticBleeding.Systems
 				var colTransform = col.transform;
 
 				if (Physics.ComputePenetration(_collider, worldPos, Quaternion.identity,
-					col, colTransform.position, colTransform.rotation,
-					out var direction, out var distance))
+					    col, colTransform.position, colTransform.rotation,
+					    out var direction, out var distance))
 				{
 					if (Mathf.Abs(distance) < 0.001f) continue;
 
@@ -119,7 +122,8 @@ namespace RealisticBleeding.Systems
 			return any;
 		}
 
-		private void AssignNewSurfaceValues(ref BloodDrop bloodDrop, ref SurfaceCollider surfaceCollider, Vector3 point, Collider collider)
+		private void AssignNewSurfaceValues(ref BloodDrop bloodDrop, ref SurfaceCollider surfaceCollider, Vector3 point,
+			Collider collider)
 		{
 			surfaceCollider.Collider = collider;
 			bloodDrop.Position = collider.transform.InverseTransformPoint(point);

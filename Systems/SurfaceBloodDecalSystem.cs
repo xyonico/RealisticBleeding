@@ -18,6 +18,7 @@ namespace RealisticBleeding.Systems
 		private const float CellSize = 0.12f;
 		private const int MaxBoundsDimension = 20;
 		private const int MaxCellCount = MaxBoundsDimension * MaxBoundsDimension * MaxBoundsDimension;
+		private const int MaxTotalBloodDrops = 4096;
 
 		private static readonly int BloodDropsID = Shader.PropertyToID("_BloodDrops");
 		private static readonly int CellsID = Shader.PropertyToID("_Cells");
@@ -43,8 +44,10 @@ namespace RealisticBleeding.Systems
 
 		private bool _isFirstFrame = true;
 		
-		[ModOption(category = "Performance", name = "Update Decals When Far Away",
-			tooltip = "Whether decals should be updated on low LOD models too.\nDisabling this can improve performance.",
+		[ModOptionCategory("Performance", 1)]
+		[ModOptionButton]
+		[ModOption("Update Decals When Far Away",
+			"Whether decals should be updated on low LOD models too.\nDisabling this can improve performance.",
 			defaultValueIndex = 1, order = 12)]
 		private static bool UpdateDecalsWhenFarAway { get; set; }
 
@@ -52,7 +55,7 @@ namespace RealisticBleeding.Systems
 		{
 			RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
 
-			_bloodDropsBuffer = new ComputeBuffer(512, BloodDropGPU.SizeOf);
+			_bloodDropsBuffer = new ComputeBuffer(MaxTotalBloodDrops, BloodDropGPU.SizeOf);
 			_cellsBuffer = new ComputeBuffer(MaxCellCount, CellGPU.SizeOf);
 
 			_commandBuffer = new CommandBuffer { name = "Realistic Blood - Decal Drawing" };
@@ -105,7 +108,7 @@ namespace RealisticBleeding.Systems
 					var startPos = worldPos + offset;
 					var endPos = worldPos - offset;
 
-					var radius = Mathf.Clamp(bloodDrop.Size * 0.5f, 0.003f, 0.02f);
+					var radius = Mathf.Clamp(bloodDrop.Size * 0.5f, 0.0005f, 0.05f);
 
 					var bloodDropGPU = new BloodDropGPU(startPos, endPos, radius);
 
@@ -386,10 +389,15 @@ namespace RealisticBleeding.Systems
 
 							if (drops != null && drops.Count > 0)
 							{
-								commandBuffer.SetBufferData(bloodDropsBuffer, drops, 0, dropsIndex, drops.Count);
+								var maxCount = MaxTotalBloodDrops - dropsIndex;
+								var count = Mathf.Min(drops.Count, maxCount);
 
-								dropsIndex += drops.Count;
-								cellGPU.Count = (uint)drops.Count;
+								if (count <= 0) continue;
+								
+								commandBuffer.SetBufferData(bloodDropsBuffer, drops, 0, dropsIndex, count);
+
+								dropsIndex += count;
+								cellGPU.Count = (uint)count;
 							}
 
 							CellArray[flatIndex] = cellGPU;

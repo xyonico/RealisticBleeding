@@ -18,10 +18,10 @@ namespace RealisticBleeding
 
 		private static bool _hasLoaded;
 
-		[ModOption(category = "Features",
-			name = "Pause Simulation",
-			tooltip =
-				"Pauses all blood droplet simulation if enabled.\nGood for quickly disabling the mod temporarily to see the performance difference.",
+		[ModOptionCategory("Features", 0)]
+		[ModOptionButton]
+		[ModOption("Pause Simulation",
+			"Pauses all blood droplet simulation if enabled.\nGood for quickly disabling the mod temporarily to see the performance difference.",
 			order = 0)]
 		public static bool PauseSimulation { get; set; }
 
@@ -36,7 +36,6 @@ namespace RealisticBleeding
 
 		internal static void OnLoaded()
 		{
-
 			if (_hasLoaded) return;
 			_hasLoaded = true;
 

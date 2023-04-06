@@ -31,11 +31,10 @@ namespace RealisticBleeding
 
 			private static int _decalPixelsPerMeter;
 
-			[ModOption(category = "Performance", name = "Decal Pixels per Meter",
-				tooltip =
-					"This overrides the resolution of all character/weapon decal textures.\n" +
-					"Higher setting increases quality, at the cost of performance.\n" +
-					"Setting this to Default will leave the resolutions to whatever the developers chose for each model.\n",
+			[ModOptionCategory("Performance", 1)]
+			[ModOption("Decal Pixels per Meter",
+				"This overrides the resolution of all character/weapon decal textures.\n" +
+				"Setting this to Default will leave the resolutions to whatever the developers chose for each model.\n",
 				order = 11, valueSourceName = nameof(GetDecalResolutions), defaultValueIndex = 4)]
 			private static int DecalPixelsPerMeter
 			{
@@ -58,7 +57,7 @@ namespace RealisticBleeding
 						revealMaterialController.height = pixels;
 
 						InitMethod.Invoke(revealMaterialController, Array.Empty<object>());
-						
+
 						var texture = revealMaterialController.MaskTexture;
 
 						if (texture == null) continue;

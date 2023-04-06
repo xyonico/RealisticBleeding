@@ -10,8 +10,10 @@ namespace RealisticBleeding
 	{
 		private static bool _bleedFromWounds;
 
-		[ModOption(category = "Features", name = "Bleeding From Wounds",
-			tooltip = "Whether wounds should bleed.\nNose and mouth bleed can still be enabled separately from this.",
+		[ModOptionCategory("Features", 0)]
+		[ModOptionButton]
+		[ModOption("Bleeding From Wounds",
+			"Whether wounds should bleed.\nNose and mouth bleed can still be enabled separately from this.",
 			defaultValueIndex = 1, order = 1)]
 		private static bool BleedFromWounds
 		{
@@ -32,15 +34,27 @@ namespace RealisticBleeding
 			}
 		}
 
-		[ModOption(category = "Features", name = "Nose Bleeds",
-			tooltip = "Whether noses should bleed when enough blunt force is applied to the head.",
+		[ModOptionCategory("Features", 0)]
+		[ModOptionButton]
+		[ModOption("Nose Bleeds",
+			"Whether noses should bleed when enough blunt force is applied to the head.",
 			defaultValueIndex = 1, order = 2)]
 		private static bool NoseBleedsEnabled { get; set; }
 		
-		[ModOption(category = "Features", name = "Mouth Bleeds",
-			tooltip = "Whether blood should come from the mouth when torso is pierced.",
+		[ModOptionCategory("Features", 0)]
+		[ModOptionButton]
+		[ModOption("Mouth Bleeds",
+			"Whether blood should come from the mouth when torso is pierced.",
 			defaultValueIndex = 1, order = 3)]
 		private static bool MouthBleedsEnabled { get; set; }
+		
+		[ModOptionCategory("Features", 0)]
+		[ModOptionButton]
+		[ModOption("Player Bleeds",
+			"Whether the player character should also bleed.\n" +
+					  "Disabling this can improve performance.",
+			defaultValueIndex = 1, order = 4)]
+		private static bool PlayerBleeding { get; set; }
 
 		[HarmonyPatch(typeof(EffectInstance), "AddEffect")]
 		public static class AddEffectPatch
@@ -87,6 +101,8 @@ namespace RealisticBleeding
 				if (ragdollPart == null) return;
 
 				var creature = ragdollPart.ragdoll.creature;
+
+				if (!PlayerBleeding && creature.isPlayer) return;
 
 				var pressureIntensity =
 					Catalog.GetCollisionStayRatio(collisionInstance.pressureRelativeVelocity.magnitude);

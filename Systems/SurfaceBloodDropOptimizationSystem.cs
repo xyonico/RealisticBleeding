@@ -2,6 +2,7 @@ using System;
 using DefaultEcs;
 using RealisticBleeding.Components;
 using ThunderRoad;
+using UnityEngine;
 
 namespace RealisticBleeding.Systems
 {
@@ -21,11 +22,11 @@ namespace RealisticBleeding.Systems
 
 			return array;
 		}
-		
-		[ModOption(category = "Performance", name = "Max Active Blood Drops",
-			tooltip =
-				"The max number of blood drops that can be updated each frame.\n" +
-				"If the number of blood drops exceeds this, the blood simulation will slow down to maintain performance.",
+
+		[ModOptionCategory("Performance", 1)]
+		[ModOption("Max Active Blood Drops",
+			"The max number of blood drops that can be updated each frame.\n" +
+			"If the number of blood drops exceeds this, the blood simulation will slow down to maintain performance.",
 			order = 10, valueSourceName = nameof(GetMaxActiveBloodDropValues), defaultValueIndex = 2)]
 		private static int MaxActiveBloodDrops { get; set; }
 
@@ -37,6 +38,7 @@ namespace RealisticBleeding.Systems
 
 		protected override void Update(float deltaTime, ReadOnlySpan<Entity> entities)
 		{
+			Debug.Log(entities.Length);
 			if (entities.Length == 0) return;
 
 			var updateCount = 0;

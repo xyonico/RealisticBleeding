@@ -11,14 +11,23 @@ namespace RealisticBleeding.Systems
 		private const float FrequencyRangeMin = 1f;
 		private const float FrequencyRangeMax = 2f;
 
-		[ModOption(category = "Multipliers", name = "Blood Amount",
-			tooltip = "Controls how often blood droplets spawn from wounds.",
+		[ModOptionCategory("Multipliers", 2)]
+		[ModOption("Blood Amount",
+			"Controls how often blood droplets spawn from wounds.",
 			valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
 			defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 20)]
 		private static float BloodAmountMultiplier { get; set; }
 		
-		[ModOption(category = "Multipliers", name = "Blood Trail Width",
-			tooltip = "Controls the size of the trails left by blood droplets.",
+		[ModOptionCategory("Multipliers", 2)]
+		[ModOption("Bleed Duration",
+			"Controls how long wounds will continue spawning blood droplets.",
+			valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
+			defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 21)]
+		internal static float BleedDurationMultiplier { get; set; }
+		
+		[ModOptionCategory("Multipliers", 2)]
+		[ModOption("Blood Trail Width",
+			"Controls the size of the trails left by blood droplets.",
 			valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
 			defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 22)]
 		private static float BloodStreakWidthMultiplier { get; set; }
