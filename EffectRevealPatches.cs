@@ -176,7 +176,7 @@ namespace RealisticBleeding
 						{
 							if (Vector3.Distance(nosePosition, position) < 0.1f)
 							{
-								NoseBleed.SpawnOnDelayed(creature, Random.Range(0.75f, 1.75f), 1, 1, 0.7f);
+								NoseBleed.SpawnOnDelayed(creature, Random.Range(0.75f, 1.75f), 1, 1, 0.9f);
 
 								return;
 							}
@@ -185,7 +185,7 @@ namespace RealisticBleeding
 						if (collisionInstance.intensity > 0.5f)
 						{
 							NoseBleed.SpawnOnDelayed(creature, Random.Range(1f, 2), intensity, intensity,
-								Mathf.Max(0.3f, intensity));
+								Mathf.Clamp(intensity, 0.8f, 1.1f));
 						}
 					}
 				}
@@ -195,7 +195,7 @@ namespace RealisticBleeding
 				{
 					if (intensity > 0.2f)
 					{
-						NoseBleed.SpawnOnDelayed(creature, Random.Range(2f, 4f), 0.2f, 0.1f, 0.7f);
+						NoseBleed.SpawnOnDelayed(creature, Random.Range(2f, 4f), 0.2f, 0.1f, 0.9f);
 						MouthBleed.SpawnOnDelayed(creature, Random.Range(2, 4f), 1, 1);
 					}
 				}

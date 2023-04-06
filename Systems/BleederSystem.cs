@@ -30,7 +30,7 @@ namespace RealisticBleeding.Systems
 			"Controls the size of the trails left by blood droplets.",
 			valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
 			defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 22)]
-		private static float BloodStreakWidthMultiplier { get; set; }
+		internal static float BloodStreakWidthMultiplier { get; set; }
 
 		public BleederSystem(World world) : base(world.GetEntities().With<Bleeder>().AsSet())
 		{
@@ -72,7 +72,7 @@ namespace RealisticBleeding.Systems
 					randomVelocity = Vector3.ProjectOnPlane(randomVelocity, gravityDir);
 				}
 
-				BloodDrop.Spawn(dropPosition, randomVelocity, 0.01f * bleeder.SizeMultiplier * BloodStreakWidthMultiplier);
+				BloodDrop.Spawn(dropPosition, randomVelocity, 0.01f * bleeder.SizeMultiplier);
 			}
 		}
 

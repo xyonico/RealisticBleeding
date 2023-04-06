@@ -108,7 +108,7 @@ namespace RealisticBleeding.Systems
 					var startPos = worldPos + offset;
 					var endPos = worldPos - offset;
 
-					var radius = Mathf.Clamp(bloodDrop.Size * 0.5f, 0.0005f, 0.05f);
+					var radius = Mathf.Clamp(bloodDrop.Size * 0.5f, 0.003f, 0.02f) * BleederSystem.BloodStreakWidthMultiplier;
 
 					var bloodDropGPU = new BloodDropGPU(startPos, endPos, radius);
 
