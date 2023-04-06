@@ -38,7 +38,6 @@ namespace RealisticBleeding.Systems
 
 		protected override void Update(float deltaTime, ReadOnlySpan<Entity> entities)
 		{
-			Debug.Log(entities.Length);
 			if (entities.Length == 0) return;
 
 			var updateCount = 0;
