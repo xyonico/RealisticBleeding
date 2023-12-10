@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using ThunderRoad;
 using ThunderRoad.Reveal;
+using Unity.Collections;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -154,8 +156,6 @@ namespace RealisticBleeding.Systems
 
         private void OnBeginFrameRendering(ScriptableRenderContext context, Camera[] cameras)
         {
-            Debug.Log("1.1");
-
             try
             {
                 var projectionMatrix = Matrix4x4.Ortho(0, 1, 0, 1, -1, 100);
@@ -167,7 +167,7 @@ namespace RealisticBleeding.Systems
                     var revealMaterialController = keyValuePair.Key;
                     var bloodDropsGrid = keyValuePair.Value;
 
-                    bloodDropsGrid.StoreIntoBuffers(_commandBuffer, _bloodDropsBuffer, _cellsBuffer);
+                    bloodDropsGrid.StoreIntoBuffers(_bloodDropsBuffer, _cellsBuffer);
 
                     var shouldClear = revealMaterialController.ActivateRevealMaterials();
 
@@ -213,17 +213,19 @@ namespace RealisticBleeding.Systems
 
         private struct BloodDropGPU
         {
-            public const int SizeOf = sizeof(float) * 7;
+            public const int SizeOf = sizeof(float) * 8;
 
             public Vector3 StartPos;
-            public Vector3 EndPos;
             public float InverseSqrRadius;
+            public Vector3 EndPos;
+            private float _padding;
 
             public BloodDropGPU(Vector3 startPos, Vector3 endPos, float radius)
             {
                 StartPos = startPos;
                 EndPos = endPos;
                 InverseSqrRadius = 1 / (radius * radius);
+                _padding = 0;
             }
         }
 
@@ -245,20 +247,19 @@ namespace RealisticBleeding.Systems
         {
             //private static readonly ObjectPool<BloodDropGrid> Pool = new ObjectPool<BloodDropGrid>(null, null);
 
-            private static readonly CellGPU[] CellArray = new CellGPU[MaxCellCount];
+            private static readonly uint2[] CellArray = new uint2[MaxCellCount];
+            private static readonly float4x2[] BloodDropsArray = new float4x2[MaxTotalBloodDrops];
 
             private static readonly Vector3Int MaxGridSize =
                 new Vector3Int(MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension);
 
-            private readonly List<BloodDropGPU>[,,] _grid;
+            private readonly List<float4x2>[,,] _grid =
+                new List<float4x2>[MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension];
 
             public Matrix4x4 Matrix { get; private set; }
             public Vector3Int Dimensions { get; private set; }
 
-            public BloodDropGrid()
-            {
-                _grid = new List<BloodDropGPU>[MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension];
-            }
+            public int BloodDropCount { get; private set; }
 
             static BloodDropGrid()
             {
@@ -305,7 +306,7 @@ namespace RealisticBleeding.Systems
 
             public void Add(in BloodDropGPU bloodDrop, Vector3 worldPos)
             {
-                var boundsStartPos = Matrix.MultiplyPoint3x4(worldPos).ScaledBy(Dimensions);
+                var boundsStartPos = Vector3.Scale(Dimensions, Matrix.MultiplyPoint3x4(worldPos));
 
                 var startPosCoords = Vector3Int.FloorToInt(boundsStartPos);
 
@@ -313,23 +314,30 @@ namespace RealisticBleeding.Systems
                 startPosCoords = Vector3Int.Min(MaxGridSize, startPosCoords);
 
                 AddToCell(in bloodDrop, startPosCoords);
+
+                BloodDropCount++;
             }
 
             private void AddToCell(in BloodDropGPU bloodDropGPU, Vector3Int cell)
             {
-                var list = _grid[cell.x, cell.y, cell.z];
+                ref var list = ref _grid[cell.x, cell.y, cell.z];
 
                 if (list == null)
                 {
-                    list = ListPool<BloodDropGPU>.Get();
-                    _grid[cell.x, cell.y, cell.z] = list;
+                    list = new List<float4x2>();
                 }
 
-                list.Add(bloodDropGPU);
+                list.Add(new float4x2
+                {
+                    c0 = new float4(bloodDropGPU.StartPos, bloodDropGPU.InverseSqrRadius),
+                    c1 = new float4(bloodDropGPU.EndPos, 0)
+                });
             }
 
             private void Clear()
             {
+                BloodDropCount = 0;
+
                 for (var x = 0; x < Dimensions.x; x++)
                 {
                     for (var y = 0; y < Dimensions.y; y++)
@@ -342,16 +350,18 @@ namespace RealisticBleeding.Systems
                 }
             }
 
-            public void StoreIntoBuffers(CommandBuffer commandBuffer, ComputeBuffer bloodDropsBuffer,
-                ComputeBuffer cellsBuffer)
+            public void StoreIntoBuffers(ComputeBuffer bloodDropsBuffer, ComputeBuffer cellsBuffer)
             {
                 var dropsIndex = 0;
 
-                for (var z = 0; z < Dimensions.z; z++)
+                var dimensions = Dimensions;
+                var totalCells = dimensions.x * dimensions.y * dimensions.z;
+
+                for (var z = 0; z < dimensions.z; z++)
                 {
-                    for (var y = 0; y < Dimensions.y; y++)
+                    for (var y = 0; y < dimensions.y; y++)
                     {
-                        for (var x = 0; x < Dimensions.x; x++)
+                        for (var x = 0; x < dimensions.x; x++)
                         {
                             var flatIndex = GetFlattenedIndex(x, y, z);
                             var drops = _grid[x, y, z];
@@ -365,19 +375,22 @@ namespace RealisticBleeding.Systems
 
                                 if (count <= 0) continue;
 
-                                commandBuffer.SetBufferData(bloodDropsBuffer, drops, 0, dropsIndex, count);
+                                for (var i = 0; i < drops.Count; i++)
+                                {
+                                    BloodDropsArray[dropsIndex + i] = drops[i];
+                                }
 
                                 dropsIndex += count;
                                 cellGPU.Count = (uint)count;
                             }
 
-                            CellArray[flatIndex] = cellGPU;
+                            CellArray[flatIndex] = new uint2(cellGPU.StartIndex, cellGPU.Count);
                         }
                     }
                 }
 
-                var cellCount = Dimensions.GetVolume();
-                commandBuffer.SetBufferData(cellsBuffer, CellArray, 0, 0, cellCount);
+                bloodDropsBuffer.SetData(BloodDropsArray, 0, 0, dropsIndex);
+                cellsBuffer.SetData(CellArray, 0, 0, totalCells);
             }
 
             private int GetFlattenedIndex(int x, int y, int z)

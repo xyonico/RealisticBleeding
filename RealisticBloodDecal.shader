@@ -23,8 +23,9 @@
             struct BloodDrop
             {
                 float3 startPos;
-                float3 endPos;
                 float inverseSqrRadius;
+                float3 endPos;
+                float padding;
             };
 
             struct Cell
