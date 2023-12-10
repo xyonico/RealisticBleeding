@@ -1,162 +1,125 @@
 using System;
-using DefaultEcs;
-using DefaultEcs.System;
+using System.Collections.Generic;
 using RealisticBleeding.Components;
-using RealisticBleeding.Messages;
 using RealisticBleeding.Systems;
 using ThunderRoad;
 using UnityEngine;
 using Object = UnityEngine.Object;
-using Random = UnityEngine.Random;
 
 namespace RealisticBleeding
 {
-	internal static class EntryPoint
-	{
-		private const string HarmonyID = "com.xyonico.realistic-bleeding";
+    internal static class EntryPoint
+    {
+        private const string HarmonyID = "com.xyonico.realistic-bleeding";
 
-		private static bool _hasLoaded;
+        private static bool _hasLoaded;
 
-		//[ModOptionCategory("Features", 0)]
-		//[ModOptionButton]
-		//[ModOption("Pause Simulation",
-		//	"Pauses all blood droplet simulation if enabled.\nGood for quickly disabling the mod temporarily to see the performance difference.",
-		//	order = 0)]
-		public static bool PauseSimulation;
+        //[ModOptionCategory("Features", 0)]
+        //[ModOptionButton]
+        //[ModOption("Pause Simulation",
+        //	"Pauses all blood droplet simulation if enabled.\nGood for quickly disabling the mod temporarily to see the performance difference.",
+        //	order = 0)]
+        public static bool PauseSimulation;
 
-		public static readonly World World = new World();
+        internal static SphereCollider Collider { get; private set; }
 
-		private static ISystem<float> _fixedUpdateSystem;
-		private static ISystem<float> _updateSystem;
+        public static readonly FastList<Bleeder> Bleeders = new FastList<Bleeder>(512);
+        public static readonly FastList<SurfaceBloodDrop> SurfaceBloodDrops = new FastList<SurfaceBloodDrop>(1024);
+        public static readonly FastList<FallingBloodDrop> FallingBloodDrops = new FastList<FallingBloodDrop>(1024);
 
-		internal static SphereCollider Collider { get; private set; }
+        public static LayerMask SurfaceLayerMask { get; private set; }
+        public static LayerMask EnvironmentLayerMask { get; private set; }
+        public static LayerMask SurfaceAndEnvironmentLayerMask { get; private set; }
 
-		private static EffectData _bloodDropDecalData;
+        private static List<BaseSystem> _fixedUpdateSystems;
+        private static List<BaseSystem> _updateSystems;
 
-		internal static void OnLoaded()
-		{
-			if (_hasLoaded) return;
-			_hasLoaded = true;
+        internal static void OnLoaded()
+        {
+            if (_hasLoaded) return;
+            _hasLoaded = true;
 
-			Debug.Log("Realistic Bleeding loaded!");
+            Debug.Log("Realistic Bleeding loaded!");
 
-			//var harmony = new Harmony(HarmonyID);
-			//harmony.PatchAll(typeof(EntryPoint).Assembly);
+            //var harmony = new Harmony(HarmonyID);
+            //harmony.PatchAll(typeof(EntryPoint).Assembly);
 
-			var surfaceLayerMask = LayerMask.GetMask(nameof(LayerName.Avatar), nameof(LayerName.Ragdoll),
-				nameof(LayerName.NPC),
-				nameof(LayerName.PlayerHandAndFoot));
-			var environmentLayerMask = LayerMask.GetMask(nameof(LayerName.Default), "NoLocomotion");
+            SurfaceLayerMask = LayerMask.GetMask(nameof(LayerName.Avatar), nameof(LayerName.Ragdoll),
+                nameof(LayerName.NPC),
+                nameof(LayerName.PlayerHandAndFoot));
+            EnvironmentLayerMask = LayerMask.GetMask(nameof(LayerName.Default), "NoLocomotion");
 
-			var spherePrimitive = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-			Object.DontDestroyOnLoad(spherePrimitive);
+            SurfaceAndEnvironmentLayerMask = SurfaceLayerMask | EnvironmentLayerMask;
 
-			Collider = spherePrimitive.GetComponent<SphereCollider>();
-			Collider.radius = 0.003f;
-			Collider.isTrigger = true;
+            var spherePrimitive = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            Object.DontDestroyOnLoad(spherePrimitive);
 
-			var sphereMesh = spherePrimitive.GetComponent<MeshFilter>().sharedMesh;
-			spherePrimitive.transform.position = new Vector3(100000, 100000, 100000);
+            Collider = spherePrimitive.GetComponent<SphereCollider>();
+            Collider.radius = 0.003f;
+            Collider.isTrigger = true;
 
-			World.SetMaxCapacity<LayerMasks>(1);
-			World.Set(new LayerMasks(surfaceLayerMask, environmentLayerMask));
+            var sphereMesh = spherePrimitive.GetComponent<MeshFilter>().sharedMesh;
+            spherePrimitive.transform.position = new Vector3(100000, 100000, 100000);
 
-			World.SetMaxCapacity<DeltaTimeMultiplier>(1);
-			World.Set(new DeltaTimeMultiplier(1));
+            EffectRevealPatches.PlayPatch.Init();
 
-			var surfaceBloodDropSet = World.GetEntities().With<BloodDrop>().With<SurfaceCollider>().AsSet();
-			var shouldUpdateSurfaceBloodDropSet = World.GetEntities().With<BloodDrop>().With<SurfaceCollider>()
-				.WhenAdded<ShouldUpdate>().WhenChanged<ShouldUpdate>().AsSet();
-			var fallingBloodDropSet = World.GetEntities().With<BloodDrop>().Without<SurfaceCollider>().AsSet();
+            _fixedUpdateSystems = new List<BaseSystem>
+            {
+                new BleederSystem(Bleeders, SurfaceBloodDrops),
+                new FallingBloodDropSystem(FallingBloodDrops, SurfaceBloodDrops),
+                new SurfaceBloodDropUpdateSystem(SurfaceBloodDrops, FallingBloodDrops, Collider),
+                new SurfaceBloodDecalSystem(SurfaceBloodDrops)
+            };
 
-			var bleedersSet = World.GetEntities().With<Bleeder>().AsSet();
-			EffectRevealPatches.PlayPatch.ActiveBleeders = bleedersSet;
-			EffectRevealPatches.PlayPatch.Init();
+            _updateSystems = new List<BaseSystem>
+            {
+                new FallingBloodDropRenderingSystem(FallingBloodDrops, sphereMesh, BloodMaterial.Material)
+            };
 
-			_fixedUpdateSystem = new SequentialSystem<float>(
-				new BleederSystem(World),
-				new FallingBloodDropSystem(fallingBloodDropSet),
-				new SurfaceBloodDropOptimizationSystem(surfaceBloodDropSet),
-				new SurfaceBloodDropVelocityRandomnessSystem(shouldUpdateSurfaceBloodDropSet),
-				new SurfaceBloodDropPhysicsSystem(shouldUpdateSurfaceBloodDropSet, Collider),
-				new BloodDropDrippingSystem(shouldUpdateSurfaceBloodDropSet),
-				new SurfaceBloodDecalSystem(shouldUpdateSurfaceBloodDropSet),
-				new LifetimeSystem(World.GetEntities().With<Lifetime>().AsSet()),
-				new ActionSystem<float>(_ => shouldUpdateSurfaceBloodDropSet.Complete()));
+            var disposeWithCreatureSystem = new DisposeWithCreatureSystem(SurfaceBloodDrops, Bleeders);
+        }
 
-			_updateSystem = new SequentialSystem<float>(
-				new FallingBloodDropRenderingSystem(fallingBloodDropSet, sphereMesh, BloodMaterial.Material));
+        internal static void OnUpdate()
+        {
+            if (PauseSimulation) return;
 
-			var disposeWithCreatureSystem = new DisposeWithCreatureSystem(World);
+            var deltaTime = Time.deltaTime;
+            
+            foreach (var updateSystem in _updateSystems)
+            {
+                try
+                {
+                    updateSystem.Update(deltaTime);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+        }
 
-			World.Subscribe((in BloodDropHitSurface hitSurface) =>
-			{
-				var surfaceCollider = new SurfaceCollider(hitSurface.Collider, Vector3.zero);
-				ref var bloodDrop = ref hitSurface.Entity.Get<BloodDrop>();
+        internal static void OnFixedUpdate()
+        {
+            if (PauseSimulation) return;
 
-				bloodDrop.Position = hitSurface.Collider.transform.InverseTransformPoint(bloodDrop.Position);
-				hitSurface.Entity.Set(surfaceCollider);
+            var deltaTime = Time.deltaTime;
 
-				var rb = hitSurface.Collider.attachedRigidbody;
-				if (!rb) return;
+            foreach (var fixedUpdateSystem in _fixedUpdateSystems)
+            {
+                try
+                {
+                    fixedUpdateSystem.Update(deltaTime);
+                }
+                catch (Exception e)
+                {
+                    Debug.LogException(e);
+                }
+            }
+        }
 
-				if (rb.TryGetComponent(out RagdollPart ragdollPart))
-				{
-					hitSurface.Entity.Set(new DisposeWithCreature(ragdollPart.ragdoll.creature));
-				}
-			});
-
-			World.Subscribe<BloodDropHitEnvironment>(OnBloodDropHitEnvironment);
-		}
-
-		private static void OnBloodDropHitEnvironment(in BloodDropHitEnvironment message)
-		{
-			ref var bloodDrop = ref message.Entity.Get<BloodDrop>();
-
-			if (_bloodDropDecalData == null)
-			{
-				_bloodDropDecalData = Catalog.GetData<EffectData>("DropBlood");
-			}
-
-			var rotation = Quaternion.AngleAxis(Random.Range(0f, 360f), message.Normal) *
-			               Quaternion.LookRotation(message.Normal);
-			var instance = _bloodDropDecalData.Spawn(bloodDrop.Position, rotation);
-			instance.Play();
-
-			if (instance.effects == null || instance.effects.Count == 0) return;
-
-			var effectDecal = instance.effects[0] as EffectDecal;
-
-			if (effectDecal == null) return;
-
-			const float decalScale = 0.1f;
-			effectDecal.meshRenderer.transform.localScale = new Vector3(decalScale, decalScale, decalScale);
-		}
-
-		internal static void OnUpdate()
-		{
-			if (PauseSimulation) return;
-
-			try
-			{
-				_updateSystem.Update(Time.deltaTime);
-			}
-			catch (Exception e)
-			{
-				Debug.LogException(e);
-			}
-		}
-
-		internal static void OnFixedUpdate()
-		{
-			if (PauseSimulation) return;
-
-			_fixedUpdateSystem.Update(Time.deltaTime);
-		}
-
-		private static void SpawnBloodDrop(Vector3 position)
-		{
-			BloodDrop.Spawn(position, Vector3.zero, 0.01f);
-		}
-	}
+        private static void SpawnBloodDrop(Vector3 position)
+        {
+            //SurfaceBloodDrop.Spawn(position, Vector3.zero, 0.01f);
+        }
+    }
 }

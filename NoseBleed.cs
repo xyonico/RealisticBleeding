@@ -1,105 +1,109 @@
 using System.Collections;
 using System.Collections.Generic;
-using DefaultEcs;
 using RealisticBleeding.Components;
 using ThunderRoad;
 using UnityEngine;
 
 namespace RealisticBleeding
 {
-	public static class NoseBleed
-	{
-		private static readonly Vector3 UnderNoseOffset = new Vector3(0, -0.055f, 0.046f);
-		private const float NostrilOffset = 0.008f;
+    public static class NoseBleed
+    {
+        private static readonly Vector3 UnderNoseOffset = new Vector3(0, -0.055f, 0.046f);
+        private const float NostrilOffset = 0.008f;
 
-		private static readonly Dictionary<Creature, (Entity left, Entity right, Coroutine coroutine)> _bleedingCreatures =
-			new Dictionary<Creature, (Entity, Entity, Coroutine)>();
-		
-		public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)
-		{
-			if (creature == null) return;
-			var centerEyes = creature.centerEyes;
+        private static readonly HashSet<Creature> _bleedingCreatures = new HashSet<Creature>();
 
-			if (centerEyes == null) return;
+        public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier,
+            float sizeMultiplier = 1)
+        {
+            if (creature == null) return;
+            var centerEyes = creature.centerEyes;
 
-			if (_bleedingCreatures.TryGetValue(creature, out var bleeds))
-			{
-				if (bleeds.left.IsAlive)
-				{
-					var bleeder = bleeds.left.Get<Bleeder>();
-					if (frequencyMultiplier * 2 > bleeder.FrequencyMultiplier)
-					{
-						bleeds.left.Dispose();
-						bleeds.right.Dispose();
-					
-						creature.StopCoroutine(bleeds.coroutine);
-					}
-					else
-					{
-						return;
-					}
-				}
-				
-				_bleedingCreatures.Remove(creature);
-			}
+            if (centerEyes == null) return;
 
-			var left = SpawnNoseBleeder(-NostrilOffset); // left nostril
-			var right = SpawnNoseBleeder(NostrilOffset); // right nostril
+            if (!_bleedingCreatures.Add(creature)) return;
 
-			Entity SpawnNoseBleeder(float nostrilOffset)
-			{
-				var noseOffset = UnderNoseOffset;
-				noseOffset.x = nostrilOffset;
-				var bleeder = Bleeder.Spawn(centerEyes, centerEyes.TransformPoint(noseOffset), centerEyes.rotation, Vector2.zero,
-					2 * frequencyMultiplier, sizeMultiplier, 2 * durationMultiplier);
-				
-				bleeder.Set(new DisposeWithCreature(creature));
+            Collider closestCollider = null;
+            var closestDistance = float.PositiveInfinity;
 
-				return bleeder;
-			}
+            var colliders = creature.ragdoll.headPart.colliderGroup.colliders;
 
-			var coroutine = creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
-			
-			_bleedingCreatures.Add(creature, (left, right, coroutine));
-		}
+            var position = centerEyes.TransformPoint(UnderNoseOffset);
 
-		public static void SpawnOnDelayed(Creature creature, float delay, float durationMultiplier, float frequencyMultiplier,
-			float sizeMultiplier = 1)
-		{
-			if (creature == null) return;
-			var centerEyes = creature.centerEyes;
+            for (var i = 0; i < colliders.Count; i++)
+            {
+                var collider = colliders[i];
 
-			if (centerEyes == null) return;
+                var distance = Vector3.Distance(collider.ClosestPoint(position), position);
 
-			creature.StartCoroutine(SpawnOnDelayedRoutine(creature, delay, durationMultiplier, frequencyMultiplier, sizeMultiplier));
-		}
+                if (distance < closestDistance)
+                {
+                    closestCollider = collider;
+                    closestDistance = distance;
+                }
+            }
 
-		public static bool TryGetNosePosition(Creature creature, out Vector3 nosePosition)
-		{
-			nosePosition = Vector3.zero;
-			
-			if (creature == null) return false;
-			var centerEyes = creature.centerEyes;
+            if (closestCollider == null) return;
 
-			if (centerEyes == null) return false;
+            SpawnNoseBleeder(-NostrilOffset); // left nostril
+            SpawnNoseBleeder(NostrilOffset); // right nostril
 
-			nosePosition = centerEyes.TransformPoint(UnderNoseOffset);
-			return true;
-		}
+            creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
 
-		private static IEnumerator SpawnOnDelayedRoutine(Creature creature, float delay, float durationMultiplier, float frequencyMultiplier,
-			float sizeMultiplier = 1)
-		{
-			yield return new WaitForSeconds(delay);
+            return;
 
-			SpawnOn(creature, durationMultiplier, frequencyMultiplier, sizeMultiplier);
-		}
+            void SpawnNoseBleeder(float nostrilOffset)
+            {
+                var noseOffset = UnderNoseOffset;
+                noseOffset.x = nostrilOffset;
+                var bleeder = new Bleeder(centerEyes, closestCollider, centerEyes.TransformPoint(noseOffset),
+                    centerEyes.rotation, Vector2.zero,
+                    2 * frequencyMultiplier, sizeMultiplier, 2 * durationMultiplier, creature);
 
-		private static IEnumerator DelayedRemoveCreature(Creature creature, float delay)
-		{
-			yield return new WaitForSeconds(delay);
+                EntryPoint.Bleeders.TryAdd(bleeder);
+            }
+        }
 
-			_bleedingCreatures.Remove(creature);
-		}
-	}
+        public static void SpawnOnDelayed(Creature creature, float delay, float durationMultiplier,
+            float frequencyMultiplier,
+            float sizeMultiplier = 1)
+        {
+            if (creature == null) return;
+            var centerEyes = creature.centerEyes;
+
+            if (centerEyes == null) return;
+
+            creature.StartCoroutine(SpawnOnDelayedRoutine(creature, delay, durationMultiplier, frequencyMultiplier,
+                sizeMultiplier));
+        }
+
+        public static bool TryGetNosePosition(Creature creature, out Vector3 nosePosition)
+        {
+            nosePosition = Vector3.zero;
+
+            if (creature == null) return false;
+            var centerEyes = creature.centerEyes;
+
+            if (centerEyes == null) return false;
+
+            nosePosition = centerEyes.TransformPoint(UnderNoseOffset);
+            return true;
+        }
+
+        private static IEnumerator SpawnOnDelayedRoutine(Creature creature, float delay, float durationMultiplier,
+            float frequencyMultiplier,
+            float sizeMultiplier = 1)
+        {
+            yield return new WaitForSeconds(delay);
+
+            SpawnOn(creature, durationMultiplier, frequencyMultiplier, sizeMultiplier);
+        }
+
+        private static IEnumerator DelayedRemoveCreature(Creature creature, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+
+            _bleedingCreatures.Remove(creature);
+        }
+    }
 }

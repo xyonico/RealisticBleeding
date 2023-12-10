@@ -21,12 +21,36 @@ namespace RealisticBleeding
 
 			var jawBone = creature.jaw;
 
-			var bleeder = Bleeder.Spawn(jawBone, jawBone.TransformPoint(LowerLipOffset), jawBone.rotation * RotationOffset, new Vector2(0.05f, 0),
-				frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f);
+			var position = jawBone.TransformPoint(LowerLipOffset);
+			var rotation = jawBone.rotation * RotationOffset;
 			
-			bleeder.Set(new DisposeWithCreature(creature));
+			Collider closestCollider = null;
+			var closestDistance = float.PositiveInfinity;
 
-			creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
+			var colliders = creature.ragdoll.headPart.colliderGroup.colliders;
+
+			for (var i = 0; i < colliders.Count; i++)
+			{
+				var collider = colliders[i];
+
+				var distance = Vector3.Distance(collider.ClosestPoint(position), position);
+
+				if (distance < closestDistance)
+				{
+					closestCollider = collider;
+					closestDistance = distance;
+				}
+			}
+
+			if (closestCollider == null) return;
+
+			var bleeder = new Bleeder(jawBone, closestCollider, position, rotation, new Vector2(0.05f, 0),
+				frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f, creature);
+
+			if (EntryPoint.Bleeders.TryAdd(bleeder))
+			{
+				creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
+			}
 		}
 
 		public static void SpawnOnDelayed(Creature creature, float delay, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)

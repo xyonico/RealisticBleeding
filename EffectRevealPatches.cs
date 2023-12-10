@@ -1,13 +1,12 @@
-using DefaultEcs;
 using RealisticBleeding.Components;
 using ThunderRoad;
 using UnityEngine;
 
 namespace RealisticBleeding
 {
-	public static class EffectRevealPatches
-	{
-		private static bool _bleedFromWounds = true;
+    public static class EffectRevealPatches
+    {
+        private static bool _bleedFromWounds = true;
 
         //[ModOptionCategory("Features", 0)]
         //[ModOptionButton]
@@ -20,12 +19,7 @@ namespace RealisticBleeding
 
             if (!_bleedFromWounds)
             {
-                var bleeders = EntryPoint.World.GetEntities().With<Bleeder>().AsSet();
-
-                foreach (var bleeder in bleeders.GetEntities())
-                {
-                    bleeder.Dispose();
-                }
+                EntryPoint.Bleeders.Clear();
             }
         }
 
@@ -53,8 +47,6 @@ namespace RealisticBleeding
 
         public static class PlayPatch
         {
-            public static EntitySet ActiveBleeders { get; set; }
-
             internal static void Init()
             {
                 EventManager.onCreatureHit += OnCreatureHit;
@@ -171,9 +163,9 @@ namespace RealisticBleeding
 
                 if (!_bleedFromWounds) return;
 
-                foreach (var entity in ActiveBleeders.GetEntities())
+                for (var index = 0; index < EntryPoint.Bleeders.Count; index++)
                 {
-                    ref var activeBleeder = ref entity.Get<Bleeder>();
+                    ref var activeBleeder = ref EntryPoint.Bleeders[index];
                     var sqrDistance = (activeBleeder.WorldPosition - position).sqrMagnitude;
 
                     const float minDistance = 0.05f;
@@ -181,10 +173,30 @@ namespace RealisticBleeding
                     if (sqrDistance < minDistance * minDistance) return;
                 }
 
-                var bleeder = SpawnBleeder(position, rotation, ragdollPart.transform,
-                    durationMultiplier, frequencyMultiplier, sizeMultiplier, dimensions);
+                Collider closestCollider = null;
+                var closestDistance = float.PositiveInfinity;
 
-                bleeder.Set(new DisposeWithCreature(creature));
+                var colliders = ragdollPart.colliderGroup.colliders;
+
+                for (var i = 0; i < colliders.Count; i++)
+                {
+                    var collider = colliders[i];
+
+                    var distance = Vector3.Distance(collider.ClosestPoint(position), position);
+
+                    if (distance < closestDistance)
+                    {
+                        closestCollider = collider;
+                        closestDistance = distance;
+                    }
+                }
+
+                if (closestCollider == null) return;
+
+                var bleeder = new Bleeder(ragdollPart.transform, closestCollider, position, rotation,
+                    dimensions, frequencyMultiplier, sizeMultiplier, durationMultiplier, creature);
+
+                EntryPoint.Bleeders.TryAdd(bleeder);
             }
 
             /*
@@ -202,13 +214,6 @@ namespace RealisticBleeding
                 }
             }
             */
-
-            private static Entity SpawnBleeder(Vector3 position, Quaternion rotation, Transform parent,
-                float durationMultiplier, float frequencyMultiplier, float sizeMultiplier, Vector2 dimensions)
-            {
-                return Bleeder.Spawn(parent, position, rotation, dimensions, frequencyMultiplier, sizeMultiplier,
-                    durationMultiplier);
-            }
         }
     }
 }

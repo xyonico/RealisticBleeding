@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using DefaultEcs;
 using RealisticBleeding.Components;
 using ThunderRoad;
 
@@ -7,14 +6,15 @@ namespace RealisticBleeding.Systems
 {
     public class DisposeWithCreatureSystem
     {
-        private readonly EntitySet _disposeWithCreatureSet;
-
         private static readonly HashSet<Creature> TrackedCreatures = new HashSet<Creature>();
 
-        public DisposeWithCreatureSystem(World world)
-        {
-            _disposeWithCreatureSet = world.GetEntities().With<DisposeWithCreature>().AsSet();
+        private readonly FastList<SurfaceBloodDrop> _surfaceBloodDrops;
+        private readonly FastList<Bleeder> _bleeders;
 
+        public DisposeWithCreatureSystem(FastList<SurfaceBloodDrop> surfaceBloodDrops, FastList<Bleeder> bleeders)
+        {
+            _surfaceBloodDrops = surfaceBloodDrops;
+            _bleeders = bleeders;
             EventManager.onCreatureSpawn += OnCreatureSpawn;
         }
 
@@ -32,13 +32,19 @@ namespace RealisticBleeding.Systems
 
         private void OnCreatureDespawnEvent(Creature creature)
         {
-            foreach (var entity in _disposeWithCreatureSet.GetEntities())
+            for (var index = 0; index < _surfaceBloodDrops.Count; index++)
             {
-                ref var disposeWithCreature = ref entity.Get<DisposeWithCreature>();
-
-                if (disposeWithCreature.Creature == creature)
+                if (_surfaceBloodDrops[index].DisposeWithCreature == creature)
                 {
-                    entity.Dispose();
+                    _surfaceBloodDrops.RemoveAtSwapBack(index);
+                }
+            }
+
+            for (var index = 0; index < _bleeders.Count; index++)
+            {
+                if (_bleeders[index].DisposeWithCreature == creature)
+                {
+                    _bleeders.RemoveAtSwapBack(index);
                 }
             }
         }
