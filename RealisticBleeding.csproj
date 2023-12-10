@@ -32,9 +32,6 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
-        <Reference Include="0Harmony, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding\0Harmony.dll</HintPath>
-        </Reference>
         <Reference Include="DefaultEcs">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding\DefaultEcs.dll</HintPath>
         </Reference>
@@ -85,7 +82,6 @@
         <Compile Include="Components\Lifetime.cs" />
         <Compile Include="Components\ShouldUpdate.cs" />
         <Compile Include="Components\SurfaceCollider.cs" />
-        <Compile Include="CreatureDespawnHook.cs" />
         <Compile Include="DecalResolutionPatch.cs" />
         <Compile Include="DisableMaskMipMappingPatch.cs" />
         <Compile Include="EffectRevealPatches.cs" />

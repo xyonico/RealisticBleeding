@@ -14,13 +14,13 @@ namespace RealisticBleeding.Systems
 
 		private readonly SphereCollider _collider;
 
-		[ModOptionCategory("Multipliers", 2)]
-		[ModOption("Blood Surface Friction",
-			"Controls the amount of surface friction applied to blood droplets.\n" +
-			"Lower friction means blood droplets will move faster.",
-			valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
-			defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 23)]
-		private static float BloodSurfaceFrictionMultiplier { get; set; }
+		//[ModOptionCategory("Multipliers", 2)]
+		//[ModOption("Blood Surface Friction",
+		//	"Controls the amount of surface friction applied to blood droplets.\n" +
+		//	"Lower friction means blood droplets will move faster.",
+		//	valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
+		//	defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 23)]
+		private static float BloodSurfaceFrictionMultiplier = 1;
 
 		public SurfaceBloodDropPhysicsSystem(EntitySet entitySet, SphereCollider collider) : base(entitySet)
 		{

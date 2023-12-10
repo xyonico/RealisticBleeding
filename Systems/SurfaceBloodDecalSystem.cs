@@ -44,12 +44,12 @@ namespace RealisticBleeding.Systems
 
 		private bool _isFirstFrame = true;
 		
-		[ModOptionCategory("Performance", 1)]
-		[ModOptionButton]
-		[ModOption("Update Decals When Far Away",
-			"Whether decals should be updated on low LOD models too.\nDisabling this can improve performance.",
-			defaultValueIndex = 1, order = 12)]
-		private static bool UpdateDecalsWhenFarAway { get; set; }
+		//[ModOptionCategory("Performance", 1)]
+		//[ModOptionButton]
+		//[ModOption("Update Decals When Far Away",
+		//	"Whether decals should be updated on low LOD models too.\nDisabling this can improve performance.",
+		//	defaultValueIndex = 1, order = 12)]
+		private static bool UpdateDecalsWhenFarAway = true;
 
 		public SurfaceBloodDecalSystem(EntitySet set) : base(set)
 		{

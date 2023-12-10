@@ -23,12 +23,12 @@ namespace RealisticBleeding.Systems
 			return array;
 		}
 
-		[ModOptionCategory("Performance", 1)]
-		[ModOption("Max Active Blood Drops",
-			"The max number of blood drops that can be updated each frame.\n" +
-			"If the number of blood drops exceeds this, the blood simulation will slow down to maintain performance.",
-			order = 10, valueSourceName = nameof(GetMaxActiveBloodDropValues), defaultValueIndex = 2)]
-		private static int MaxActiveBloodDrops { get; set; }
+		//[ModOptionCategory("Performance", 1)]
+		//[ModOption("Max Active Blood Drops",
+		//	"The max number of blood drops that can be updated each frame.\n" +
+		//	"If the number of blood drops exceeds this, the blood simulation will slow down to maintain performance.",
+		//	order = 10, valueSourceName = nameof(GetMaxActiveBloodDropValues), defaultValueIndex = 2)]
+		private static int MaxActiveBloodDrops = 20;
 
 		private static int _currentIndex;
 

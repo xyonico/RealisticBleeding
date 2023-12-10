@@ -1,7 +1,6 @@
 using System;
 using DefaultEcs;
 using DefaultEcs.System;
-using HarmonyLib;
 using RealisticBleeding.Components;
 using RealisticBleeding.Messages;
 using RealisticBleeding.Systems;
@@ -18,12 +17,12 @@ namespace RealisticBleeding
 
 		private static bool _hasLoaded;
 
-		[ModOptionCategory("Features", 0)]
-		[ModOptionButton]
-		[ModOption("Pause Simulation",
-			"Pauses all blood droplet simulation if enabled.\nGood for quickly disabling the mod temporarily to see the performance difference.",
-			order = 0)]
-		public static bool PauseSimulation { get; set; }
+		//[ModOptionCategory("Features", 0)]
+		//[ModOptionButton]
+		//[ModOption("Pause Simulation",
+		//	"Pauses all blood droplet simulation if enabled.\nGood for quickly disabling the mod temporarily to see the performance difference.",
+		//	order = 0)]
+		public static bool PauseSimulation;
 
 		public static readonly World World = new World();
 
@@ -41,8 +40,8 @@ namespace RealisticBleeding
 
 			Debug.Log("Realistic Bleeding loaded!");
 
-			var harmony = new Harmony(HarmonyID);
-			harmony.PatchAll(typeof(EntryPoint).Assembly);
+			//var harmony = new Harmony(HarmonyID);
+			//harmony.PatchAll(typeof(EntryPoint).Assembly);
 
 			var surfaceLayerMask = LayerMask.GetMask(nameof(LayerName.Avatar), nameof(LayerName.Ragdoll),
 				nameof(LayerName.NPC),
@@ -72,6 +71,7 @@ namespace RealisticBleeding
 
 			var bleedersSet = World.GetEntities().With<Bleeder>().AsSet();
 			EffectRevealPatches.PlayPatch.ActiveBleeders = bleedersSet;
+			EffectRevealPatches.PlayPatch.Init();
 
 			_fixedUpdateSystem = new SequentialSystem<float>(
 				new BleederSystem(World),
