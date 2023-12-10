@@ -10,8 +10,6 @@ namespace RealisticBleeding
 {
     internal static class EntryPoint
     {
-        private const string HarmonyID = "com.xyonico.realistic-bleeding";
-
         private static bool _hasLoaded;
 
         //[ModOptionCategory("Features", 0)]
@@ -41,9 +39,6 @@ namespace RealisticBleeding
 
             Debug.Log("Realistic Bleeding loaded!");
 
-            //var harmony = new Harmony(HarmonyID);
-            //harmony.PatchAll(typeof(EntryPoint).Assembly);
-
             SurfaceLayerMask = LayerMask.GetMask(nameof(LayerName.Avatar), nameof(LayerName.Ragdoll),
                 nameof(LayerName.NPC),
                 nameof(LayerName.PlayerHandAndFoot));
@@ -64,7 +59,7 @@ namespace RealisticBleeding
             EffectRevealPatches.PlayPatch.Init();
 
             _fixedUpdateSystems = new List<BaseSystem>
-            {
+            { 
                 new BleederSystem(Bleeders, SurfaceBloodDrops),
                 new FallingBloodDropSystem(FallingBloodDrops, SurfaceBloodDrops),
                 new SurfaceBloodDropUpdateSystem(SurfaceBloodDrops, FallingBloodDrops, Collider),
@@ -101,9 +96,9 @@ namespace RealisticBleeding
         internal static void OnFixedUpdate()
         {
             if (PauseSimulation) return;
-
+            
             var deltaTime = Time.deltaTime;
-
+            
             foreach (var fixedUpdateSystem in _fixedUpdateSystems)
             {
                 try

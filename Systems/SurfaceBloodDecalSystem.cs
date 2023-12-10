@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using ThunderRoad;
 using ThunderRoad.Reveal;
-using Unity.Profiling;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -31,13 +30,6 @@ namespace RealisticBleeding.Systems
         private readonly ComputeBuffer _cellsBuffer;
         private readonly CommandBuffer _commandBuffer;
 
-        private readonly ProfilerMarker _updateProfilerMarker = new ProfilerMarker(ProfilerCategory.Scripts,
-            $"RealisticBleeding.{nameof(SurfaceBloodDecalSystem)}.Update");
-
-        private readonly ProfilerMarker _renderingProfilerMarker =
-            new ProfilerMarker(ProfilerCategory.Scripts,
-                $"RealisticBleeding.{nameof(SurfaceBloodDecalSystem)}.OnBeginFrameRendering");
-
         private Material _decalMaterial;
 
         private bool _isFirstFrame = true;
@@ -57,7 +49,6 @@ namespace RealisticBleeding.Systems
 
             _bloodDropsBuffer = new ComputeBuffer(MaxTotalBloodDrops, BloodDropGPU.SizeOf);
             _cellsBuffer = new ComputeBuffer(MaxCellCount, CellGPU.SizeOf);
-
             _commandBuffer = new CommandBuffer { name = "Realistic Blood - Decal Drawing" };
         }
 
@@ -85,78 +76,77 @@ namespace RealisticBleeding.Systems
                 return;
             }
 
-            using (_updateProfilerMarker.Auto())
+            // Prepare draw call data for later
+            for (var index = 0; index < _surfaceBloodDrops.Count; index++)
             {
-                // Prepare draw call data for later
-                for (var index = 0; index < _surfaceBloodDrops.Count; index++)
+                ref var bloodDrop = ref _surfaceBloodDrops[index];
+                ref var surfaceCollider = ref bloodDrop.SurfaceCollider;
+
+                var col = surfaceCollider.Collider;
+
+                var rb = col.attachedRigidbody;
+                if (!rb) continue;
+
+                if (!rb.TryGetComponent(out RagdollPart ragdollPart)) continue;
+
+                var worldPos = surfaceCollider.Collider.transform.TransformPoint(bloodDrop.Position);
+                var normal = surfaceCollider.LastNormal;
+
+                var offset = normal * ProjectionDepth;
+
+                var startPos = worldPos + offset;
+                var endPos = worldPos - offset;
+
+                var radius = Mathf.Clamp(bloodDrop.Size * 0.5f, 0.003f, 0.02f) *
+                             BleederSystem.BloodStreakWidthMultiplier;
+
+                var bloodDropGPU = new BloodDropGPU(startPos, endPos, radius);
+
+                foreach (var rendererData in ragdollPart.renderers)
                 {
-                    ref var bloodDrop = ref _surfaceBloodDrops[index];
-                    ref var surfaceCollider = ref bloodDrop.SurfaceCollider;
+                    if (!rendererData.revealDecal) continue;
 
-                    var col = surfaceCollider.Collider;
+                    var revealMaterialController = rendererData.revealDecal.revealMaterialController;
 
-                    var rb = col.attachedRigidbody;
-                    if (!rb) continue;
-
-                    if (!rb.TryGetComponent(out RagdollPart ragdollPart)) continue;
-
-                    var worldPos = surfaceCollider.Collider.transform.TransformPoint(bloodDrop.Position);
-                    var normal = surfaceCollider.LastNormal;
-
-                    var offset = normal * ProjectionDepth;
-
-                    var startPos = worldPos + offset;
-                    var endPos = worldPos - offset;
-
-                    var radius = Mathf.Clamp(bloodDrop.Size * 0.5f, 0.003f, 0.02f) *
-                                 BleederSystem.BloodStreakWidthMultiplier;
-
-                    var bloodDropGPU = new BloodDropGPU(startPos, endPos, radius);
-
-                    foreach (var rendererData in ragdollPart.renderers)
+                    if (revealMaterialController)
                     {
-                        if (!rendererData.revealDecal) continue;
+                        var renderer = rendererData.renderer;
 
-                        var revealMaterialController = rendererData.revealDecal.revealMaterialController;
+                        var isVisible = renderer.isVisible;
 
-                        if (revealMaterialController)
+                        /*
+                        if (!isVisible && UpdateDecalsWhenFarAway)
                         {
-                            var renderer = rendererData.renderer;
-
-                            var isVisible = renderer.isVisible;
-
-                            if (!isVisible && UpdateDecalsWhenFarAway)
+                            // Check if this renderer has other LODs and check if any of those are visible.
+                            if (renderer.TryGetComponent(out RevealDecalLODS revealDecalLODS))
                             {
-                                // Check if this renderer has other LODs and check if any of those are visible.
-                                if (renderer.TryGetComponent(out RevealDecalLODS revealDecalLODS))
+                                foreach (var (lodRenderer, _) in revealDecalLODS.LODRenderers)
                                 {
-                                    foreach (var (lodRenderer, _) in revealDecalLODS.LODRenderers)
+                                    if (lodRenderer.isVisible)
                                     {
-                                        if (lodRenderer.isVisible)
-                                        {
-                                            isVisible = true;
+                                        isVisible = true;
 
-                                            break;
-                                        }
+                                        break;
                                     }
                                 }
                             }
-
-                            if (!isVisible) continue;
-
-                            var bounds = renderer.bounds;
-                            if (!bounds.Contains(worldPos)) continue;
-
-                            if (!_bloodDrops.TryGetValue(revealMaterialController, out var bloodDrops))
-                            {
-                                bloodDrops = BloodDropGrid.Get();
-                                _bloodDrops[revealMaterialController] = bloodDrops;
-                            }
-
-                            bloodDrops.SetWorldBounds(bounds);
-
-                            bloodDrops.Add(in bloodDropGPU, worldPos);
                         }
+                        */
+
+                        if (!isVisible) continue;
+
+                        var bounds = renderer.bounds;
+                        if (!bounds.Contains(worldPos)) continue;
+
+                        if (!_bloodDrops.TryGetValue(revealMaterialController, out var bloodDrops))
+                        {
+                            bloodDrops = BloodDropGrid.Get();
+                            _bloodDrops[revealMaterialController] = bloodDrops;
+                        }
+
+                        bloodDrops.SetWorldBounds(bounds);
+
+                        bloodDrops.Add(in bloodDropGPU, worldPos);
                     }
                 }
             }
@@ -164,61 +154,60 @@ namespace RealisticBleeding.Systems
 
         private void OnBeginFrameRendering(ScriptableRenderContext context, Camera[] cameras)
         {
-            using (_renderingProfilerMarker.Auto())
+            Debug.Log("1.1");
+
+            try
             {
-                try
+                var projectionMatrix = Matrix4x4.Ortho(0, 1, 0, 1, -1, 100);
+
+                foreach (var keyValuePair in _bloodDrops)
                 {
-                    var projectionMatrix = Matrix4x4.Ortho(0, 1, 0, 1, -1, 100);
+                    _commandBuffer.Clear();
 
-                    foreach (var keyValuePair in _bloodDrops)
+                    var revealMaterialController = keyValuePair.Key;
+                    var bloodDropsGrid = keyValuePair.Value;
+
+                    bloodDropsGrid.StoreIntoBuffers(_commandBuffer, _bloodDropsBuffer, _cellsBuffer);
+
+                    var shouldClear = revealMaterialController.ActivateRevealMaterials();
+
+                    _commandBuffer.SetProjectionMatrix(projectionMatrix);
+                    _commandBuffer.SetRenderTarget(revealMaterialController.MaskTexture);
+                    _commandBuffer.SetGlobalBuffer(BloodDropsID, _bloodDropsBuffer);
+                    _commandBuffer.SetGlobalBuffer(CellsID, _cellsBuffer);
+                    _commandBuffer.SetGlobalMatrix(BoundsMatrixID, bloodDropsGrid.Matrix);
+
+                    Vector4 boundsDimensions = (Vector3)bloodDropsGrid.Dimensions;
+                    _commandBuffer.SetGlobalVector(BoundsDimensionsID, boundsDimensions);
+                    _commandBuffer.SetGlobalInt(BoundsVolumeID, bloodDropsGrid.Dimensions.GetVolume());
+
+                    if (shouldClear)
                     {
-                        _commandBuffer.Clear();
-
-                        var revealMaterialController = keyValuePair.Key;
-                        var bloodDropsGrid = keyValuePair.Value;
-
-                        bloodDropsGrid.StoreIntoBuffers(_commandBuffer, _bloodDropsBuffer, _cellsBuffer);
-
-                        var shouldClear = revealMaterialController.ActivateRevealMaterials();
-
-                        _commandBuffer.SetProjectionMatrix(projectionMatrix);
-                        _commandBuffer.SetRenderTarget(revealMaterialController.MaskTexture);
-                        _commandBuffer.SetGlobalBuffer(BloodDropsID, _bloodDropsBuffer);
-                        _commandBuffer.SetGlobalBuffer(CellsID, _cellsBuffer);
-                        _commandBuffer.SetGlobalMatrix(BoundsMatrixID, bloodDropsGrid.Matrix);
-
-                        Vector4 boundsDimensions = (Vector3)bloodDropsGrid.Dimensions;
-                        _commandBuffer.SetGlobalVector(BoundsDimensionsID, boundsDimensions);
-                        _commandBuffer.SetGlobalInt(BoundsVolumeID, bloodDropsGrid.Dimensions.GetVolume());
-
-                        if (shouldClear)
-                        {
-                            _commandBuffer.ClearRenderTarget(false, true, Color.clear);
-                        }
-
-                        var renderer = revealMaterialController.GetRenderer();
-                        var submeshCount = revealMaterialController.GetSubMeshCount();
-
-                        for (var submeshIndex = 0; submeshIndex < submeshCount; submeshIndex++)
-                        {
-                            _commandBuffer.DrawRenderer(renderer, _decalMaterial, submeshIndex);
-                        }
-
-                        context.ExecuteCommandBuffer(_commandBuffer);
+                        _commandBuffer.ClearRenderTarget(false, true, Color.clear);
                     }
 
-                    // Clean up
-                    foreach (var bloodDropGrid in _bloodDrops.Values)
+                    var renderer = revealMaterialController.GetRenderer();
+                    var submeshCount = revealMaterialController.GetSubMeshCount();
+
+                    for (var submeshIndex = 0; submeshIndex < submeshCount; submeshIndex++)
                     {
-                        bloodDropGrid.Dispose();
+                        _commandBuffer.DrawRenderer(renderer, _decalMaterial, submeshIndex);
                     }
 
-                    _bloodDrops.Clear();
+                    context.ExecuteCommandBuffer(_commandBuffer);
                 }
-                catch (Exception e)
+
+                // Clean up
+                foreach (var bloodDropGrid in _bloodDrops.Values)
                 {
-                    Debug.LogException(e);
+                    bloodDropGrid.Dispose();
                 }
+
+                _bloodDrops.Clear();
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
         }
 
@@ -254,19 +243,7 @@ namespace RealisticBleeding.Systems
 
         private class BloodDropGrid : IDisposable
         {
-            private static readonly ObjectPool<BloodDropGrid> Pool = new ObjectPool<BloodDropGrid>(null, null);
-
-            private const string ProfilerMarkerPrefix = "RealisticBleeding." + nameof(SurfaceBloodDecalSystem) + "." +
-                                                        nameof(BloodDropGrid) + ".";
-
-            private static readonly ProfilerMarker AddProfilerMarker =
-                new ProfilerMarker(ProfilerCategory.Scripts, ProfilerMarkerPrefix + nameof(Add));
-
-            private static readonly ProfilerMarker AddToCellProfilerMarker =
-                new ProfilerMarker(ProfilerCategory.Scripts, ProfilerMarkerPrefix + nameof(AddToCell));
-
-            private static readonly ProfilerMarker SetWorldBoundsProfilerMarker =
-                new ProfilerMarker(ProfilerCategory.Scripts, ProfilerMarkerPrefix + nameof(SetWorldBounds));
+            //private static readonly ObjectPool<BloodDropGrid> Pool = new ObjectPool<BloodDropGrid>(null, null);
 
             private static readonly CellGPU[] CellArray = new CellGPU[MaxCellCount];
 
@@ -285,6 +262,7 @@ namespace RealisticBleeding.Systems
 
             static BloodDropGrid()
             {
+                /*
                 // Prewarm
                 const int prewarmCount = 24;
                 var list = new List<BloodDropGrid>(prewarmCount);
@@ -300,62 +278,54 @@ namespace RealisticBleeding.Systems
                 }
 
                 list.Clear();
+                */
             }
 
             public static BloodDropGrid Get()
             {
-                var grid = Pool.Get();
+                var grid = new BloodDropGrid();
 
                 return grid;
             }
 
             public void SetWorldBounds(Bounds bounds)
             {
-                using (SetWorldBoundsProfilerMarker.Auto())
-                {
-                    var size = bounds.size;
-                    var min = bounds.min;
+                var size = bounds.size;
+                var min = bounds.min;
 
-                    var dim = Vector3Int.CeilToInt(new Vector3(size.x / CellSize, size.y / CellSize,
-                        size.z / CellSize));
+                var dim = Vector3Int.CeilToInt(new Vector3(size.x / CellSize, size.y / CellSize,
+                    size.z / CellSize));
 
-                    dim = Vector3Int.Min(dim,
-                        new Vector3Int(MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension));
+                dim = Vector3Int.Min(dim,
+                    new Vector3Int(MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension));
 
-                    Dimensions = dim;
-                    Matrix = Matrix4x4.TRS(min, Quaternion.identity, size).inverse;
-                }
+                Dimensions = dim;
+                Matrix = Matrix4x4.TRS(min, Quaternion.identity, size).inverse;
             }
 
             public void Add(in BloodDropGPU bloodDrop, Vector3 worldPos)
             {
-                using (AddProfilerMarker.Auto())
-                {
-                    var boundsStartPos = Matrix.MultiplyPoint3x4(worldPos).ScaledBy(Dimensions);
+                var boundsStartPos = Matrix.MultiplyPoint3x4(worldPos).ScaledBy(Dimensions);
 
-                    var startPosCoords = Vector3Int.FloorToInt(boundsStartPos);
+                var startPosCoords = Vector3Int.FloorToInt(boundsStartPos);
 
-                    startPosCoords = Vector3Int.Max(Vector3Int.zero, startPosCoords);
-                    startPosCoords = Vector3Int.Min(MaxGridSize, startPosCoords);
+                startPosCoords = Vector3Int.Max(Vector3Int.zero, startPosCoords);
+                startPosCoords = Vector3Int.Min(MaxGridSize, startPosCoords);
 
-                    AddToCell(in bloodDrop, startPosCoords);
-                }
+                AddToCell(in bloodDrop, startPosCoords);
             }
 
             private void AddToCell(in BloodDropGPU bloodDropGPU, Vector3Int cell)
             {
-                using (AddToCellProfilerMarker.Auto())
+                var list = _grid[cell.x, cell.y, cell.z];
+
+                if (list == null)
                 {
-                    var list = _grid[cell.x, cell.y, cell.z];
-
-                    if (list == null)
-                    {
-                        list = ListPool<BloodDropGPU>.Get();
-                        _grid[cell.x, cell.y, cell.z] = list;
-                    }
-
-                    list.Add(bloodDropGPU);
+                    list = ListPool<BloodDropGPU>.Get();
+                    _grid[cell.x, cell.y, cell.z] = list;
                 }
+
+                list.Add(bloodDropGPU);
             }
 
             private void Clear()
@@ -419,7 +389,7 @@ namespace RealisticBleeding.Systems
             {
                 Clear();
 
-                Pool.Release(this);
+                //Pool.Release(this);
             }
         }
     }

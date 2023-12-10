@@ -8,10 +8,10 @@ namespace RealisticBleeding
 {
     public static class NoseBleed
     {
-        private static readonly Vector3 UnderNoseOffset = new Vector3(0, -0.055f, 0.046f);
         private const float NostrilOffset = 0.008f;
 
-        private static readonly HashSet<Creature> _bleedingCreatures = new HashSet<Creature>();
+        private static readonly Vector3 UnderNoseOffset = new Vector3(0, -0.055f, 0.046f);
+        private static readonly HashSet<Creature> BleedingCreatures = new HashSet<Creature>();
 
         public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier,
             float sizeMultiplier = 1)
@@ -21,7 +21,7 @@ namespace RealisticBleeding
 
             if (centerEyes == null) return;
 
-            if (!_bleedingCreatures.Add(creature)) return;
+            if (!BleedingCreatures.Add(creature)) return;
 
             Collider closestCollider = null;
             var closestDistance = float.PositiveInfinity;
@@ -103,7 +103,7 @@ namespace RealisticBleeding
         {
             yield return new WaitForSeconds(delay);
 
-            _bleedingCreatures.Remove(creature);
+            BleedingCreatures.Remove(creature);
         }
     }
 }

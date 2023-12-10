@@ -76,8 +76,6 @@
         <Compile Include="BloodMaterial.cs" />
         <Compile Include="Components\Bleeder.cs" />
         <Compile Include="Components\SurfaceCollider.cs" />
-        <Compile Include="DecalResolutionPatch.cs" />
-        <Compile Include="DisableMaskMipMappingPatch.cs" />
         <Compile Include="EffectRevealPatches.cs" />
         <Compile Include="EntryPoint.cs" />
         <Compile Include="FastList.cs" />
@@ -86,8 +84,6 @@
         <Compile Include="MouthBleed.cs" />
         <Compile Include="NoseBleed.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="MirrorInvertCullingBugPatch.cs" />
-        <Compile Include="ReuseMaskTextureForLODSPatch.cs" />
         <Compile Include="Systems\BaseSystem.cs" />
         <Compile Include="Systems\BleederSystem.cs" />
         <Compile Include="Systems\DisposeWithCreatureSystem.cs" />

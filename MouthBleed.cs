@@ -6,72 +6,76 @@ using RealisticBleeding.Components;
 
 namespace RealisticBleeding
 {
-	public static class MouthBleed
-	{
-		private static readonly Vector3 LowerLipOffset = new Vector3(-0.12f, 0, 0.045f);
-		private static readonly Quaternion RotationOffset = Quaternion.Euler(0, -55f, -90);
+    public static class MouthBleed
+    {
+        private static readonly Vector3 LowerLipOffset = new Vector3(-0.12f, 0, 0.045f);
+        private static readonly Quaternion RotationOffset = Quaternion.Euler(0, -55f, -90);
 
-		private static readonly HashSet<Creature> _bleedingCreatures = new HashSet<Creature>();
+        private static readonly HashSet<Creature> BleedingCreatures = new HashSet<Creature>();
 
-		public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)
-		{
-			if (creature == null) return;
+        public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier,
+            float sizeMultiplier = 1)
+        {
+            if (creature == null) return;
 
-			if (!_bleedingCreatures.Add(creature)) return;
+            if (!BleedingCreatures.Add(creature)) return;
 
-			var jawBone = creature.jaw;
+            var jawBone = creature.jaw;
 
-			var position = jawBone.TransformPoint(LowerLipOffset);
-			var rotation = jawBone.rotation * RotationOffset;
-			
-			Collider closestCollider = null;
-			var closestDistance = float.PositiveInfinity;
+            var position = jawBone.TransformPoint(LowerLipOffset);
+            var rotation = jawBone.rotation * RotationOffset;
 
-			var colliders = creature.ragdoll.headPart.colliderGroup.colliders;
+            Collider closestCollider = null;
+            var closestDistance = float.PositiveInfinity;
 
-			for (var i = 0; i < colliders.Count; i++)
-			{
-				var collider = colliders[i];
+            var colliders = creature.ragdoll.headPart.colliderGroup.colliders;
 
-				var distance = Vector3.Distance(collider.ClosestPoint(position), position);
+            for (var i = 0; i < colliders.Count; i++)
+            {
+                var collider = colliders[i];
 
-				if (distance < closestDistance)
-				{
-					closestCollider = collider;
-					closestDistance = distance;
-				}
-			}
+                var distance = Vector3.Distance(collider.ClosestPoint(position), position);
 
-			if (closestCollider == null) return;
+                if (distance < closestDistance)
+                {
+                    closestCollider = collider;
+                    closestDistance = distance;
+                }
+            }
 
-			var bleeder = new Bleeder(jawBone, closestCollider, position, rotation, new Vector2(0.05f, 0),
-				frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f, creature);
+            if (closestCollider == null) return;
 
-			if (EntryPoint.Bleeders.TryAdd(bleeder))
-			{
-				creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
-			}
-		}
+            var bleeder = new Bleeder(jawBone, closestCollider, position, rotation, new Vector2(0.05f, 0),
+                frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f, creature);
 
-		public static void SpawnOnDelayed(Creature creature, float delay, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier = 1)
-		{
-			if (creature == null) return;
+            if (EntryPoint.Bleeders.TryAdd(bleeder))
+            {
+                creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
+            }
+        }
 
-			creature.StartCoroutine(SpawnOnDelayedRoutine(creature, delay, durationMultiplier, frequencyMultiplier, sizeMultiplier));
-		}
+        public static void SpawnOnDelayed(Creature creature, float delay, float durationMultiplier,
+            float frequencyMultiplier, float sizeMultiplier = 1)
+        {
+            if (creature == null) return;
 
-		private static IEnumerator SpawnOnDelayedRoutine(Creature creature, float delay, float durationMultiplier, float frequencyMultiplier, float sizeMultiplier)
-		{
-			yield return new WaitForSeconds(delay);
+            creature.StartCoroutine(SpawnOnDelayedRoutine(creature, delay, durationMultiplier, frequencyMultiplier,
+                sizeMultiplier));
+        }
 
-			SpawnOn(creature, durationMultiplier, frequencyMultiplier, sizeMultiplier);
-		}
-		
-		private static IEnumerator DelayedRemoveCreature(Creature creature, float delay)
-		{
-			yield return new WaitForSeconds(delay);
+        private static IEnumerator SpawnOnDelayedRoutine(Creature creature, float delay, float durationMultiplier,
+            float frequencyMultiplier, float sizeMultiplier)
+        {
+            yield return new WaitForSeconds(delay);
 
-			_bleedingCreatures.Remove(creature);
-		}
-	}
+            SpawnOn(creature, durationMultiplier, frequencyMultiplier, sizeMultiplier);
+        }
+
+        private static IEnumerator DelayedRemoveCreature(Creature creature, float delay)
+        {
+            yield return new WaitForSeconds(delay);
+
+            BleedingCreatures.Remove(creature);
+        }
+    }
 }
