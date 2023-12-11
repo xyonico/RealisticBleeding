@@ -37,7 +37,7 @@ namespace RealisticBleeding.Systems
             {
                 if (_surfaceBloodDrops[index].DisposeWithCreature == creature)
                 {
-                    _surfaceBloodDrops.RemoveAtSwapBack(index);
+                    _surfaceBloodDrops.RemoveAtSwapBack(index--);
                 }
             }
 
@@ -45,7 +45,7 @@ namespace RealisticBleeding.Systems
             {
                 if (_bleeders[index].DisposeWithCreature == creature)
                 {
-                    _bleeders.RemoveAtSwapBack(index);
+                    _bleeders.RemoveAtSwapBack(index--);
                 }
             }
         }

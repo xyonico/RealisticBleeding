@@ -21,19 +21,19 @@ namespace RealisticBleeding.Systems
         private const float SurfaceDrag = 45;
 
         private static readonly Collider[] Colliders = new Collider[32];
-        
+
         private readonly SphereCollider _collider;
-        
-        //[ModOptionCategory("Multipliers", 2)]
-        //[ModOption("Blood Surface Friction",
-        //	"Controls the amount of surface friction applied to blood droplets.\n" +
-        //	"Lower friction means blood droplets will move faster.",
-        //	valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
-        //	defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 23)]
+
+        [ModOptionCategory("Multipliers", 2)]
+        [ModOption("Blood Surface Friction",
+            "Controls the amount of surface friction applied to blood droplets.\n" +
+            "Lower friction means blood droplets will move faster.",
+            valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
+            defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 23)]
         private static float BloodSurfaceFrictionMultiplier = 1;
-        
+
         // Blood dripping
-        private const float MaxVelocityToDrip = 0.08f;
+        private const float MaxVelocityToDrip = 0.1f;
 
         public SurfaceBloodDropUpdateSystem(FastList<SurfaceBloodDrop> surfaceBloodDrops,
             FastList<FallingBloodDrop> fallingBloodDrops, SphereCollider collider)
@@ -45,6 +45,20 @@ namespace RealisticBleeding.Systems
 
         protected override void UpdateInternal(float deltaTime)
         {
+            if (_surfaceBloodDrops.Count == 0) return;
+
+            for (var i = 0; i < _surfaceBloodDrops.Count; i++)
+            {
+                ref var bloodDrop = ref _surfaceBloodDrops[i];
+
+                bloodDrop.LifetimeRemaining -= deltaTime;
+
+                if (bloodDrop.LifetimeRemaining < 0)
+                {
+                    _surfaceBloodDrops.RemoveAtSwapBack(i--);
+                }
+            }
+            
             var updateCount = 0;
 
             _optimizationCurrentIndex %= _surfaceBloodDrops.Count;
@@ -53,21 +67,34 @@ namespace RealisticBleeding.Systems
 
             do
             {
-                UpdateBloodDrop(_optimizationCurrentIndex++, deltaTime);
+                if (UpdateBloodDrop(ref _optimizationCurrentIndex, deltaTime))
+                {
+                    updateCount++;
+                }
 
-                updateCount++;
+                _optimizationCurrentIndex++;
 
                 if (_optimizationCurrentIndex >= _surfaceBloodDrops.Count)
                 {
                     _optimizationCurrentIndex = 0;
                 }
-            } while (updateCount < MaxActiveBloodDrops && _optimizationCurrentIndex != startIndex);
+            } while (updateCount < MaxActiveBloodDrops && _optimizationCurrentIndex != startIndex && _surfaceBloodDrops.Count > 0);
         }
 
-        private void UpdateBloodDrop(int index, float deltaTime)
+        private bool UpdateBloodDrop(ref int index, float deltaTime)
         {
             ref var bloodDrop = ref _surfaceBloodDrops[index];
+
             ref var surfaceCollider = ref bloodDrop.SurfaceCollider;
+
+            if (surfaceCollider.Collider == null)
+            {
+                _surfaceBloodDrops.RemoveAtSwapBack(index--);
+
+                return false;
+            }
+
+            bloodDrop.ShouldRenderDecal = true;
 
             // Velocity randomization
 
@@ -93,7 +120,7 @@ namespace RealisticBleeding.Systems
             bloodDrop.Velocity = Quaternion.Euler(randomRotation) * bloodDrop.Velocity;
 
             // Physics
-            
+
             var worldPos = surfaceCollider.Collider.transform.TransformPoint(bloodDrop.Position);
 
             var prevPos = worldPos;
@@ -119,7 +146,7 @@ namespace RealisticBleeding.Systems
 
             var surfaceSpeed = (prevPos - worldPos).magnitude;
             surfaceCollider.DistanceTravelled += surfaceSpeed;
-            
+
             // Blood dripping
             ref var dripTime = ref bloodDrop.DripTime;
 
@@ -138,16 +165,21 @@ namespace RealisticBleeding.Systems
                     _fallingBloodDrops.TryAdd(new FallingBloodDrop(bloodDrop.Position, bloodDrop.Velocity,
                         bloodDrop.Size, bloodDrop.LifetimeRemaining));
 
-                    _surfaceBloodDrops.RemoveAtSwapBack(index);
+                    _surfaceBloodDrops.RemoveAtSwapBack(index--);
+
+                    return false;
                 }
             }
             else
             {
                 dripTime.Remaining = dripTime.Total;
             }
+
+            return true;
         }
-        
-        private bool Depenetrate(ref Vector3 worldPos, LayerMask surfaceLayerMask, ref SurfaceBloodDrop surfaceBloodDrop,
+
+        private bool Depenetrate(ref Vector3 worldPos, LayerMask surfaceLayerMask,
+            ref SurfaceBloodDrop surfaceBloodDrop,
             ref SurfaceCollider surfaceCollider)
         {
             var any = false;
@@ -194,7 +226,8 @@ namespace RealisticBleeding.Systems
             return any;
         }
 
-        private void AssignNewSurfaceValues(ref SurfaceBloodDrop surfaceBloodDrop, ref SurfaceCollider surfaceCollider, Vector3 point,
+        private void AssignNewSurfaceValues(ref SurfaceBloodDrop surfaceBloodDrop, ref SurfaceCollider surfaceCollider,
+            Vector3 point,
             Collider collider)
         {
             surfaceCollider.Collider = collider;
@@ -221,11 +254,11 @@ namespace RealisticBleeding.Systems
             return array;
         }
 
-        //[ModOptionCategory("Performance", 1)]
-        //[ModOption("Max Active Blood Drops",
-        //	"The max number of blood drops that can be updated each frame.\n" +
-        //	"If the number of blood drops exceeds this, the blood simulation will slow down to maintain performance.",
-        //	order = 10, valueSourceName = nameof(GetMaxActiveBloodDropValues), defaultValueIndex = 2)]
+        [ModOptionCategory("Performance", 1)]
+        [ModOption("Max Active Blood Drops",
+            "The max number of blood drops that can be updated each frame.\n" +
+            "If the number of blood drops exceeds this, the blood simulation will slow down to maintain performance.",
+            order = 10, valueSourceName = nameof(GetMaxActiveBloodDropValues), defaultValueIndex = 2)]
         private static int MaxActiveBloodDrops = 20;
     }
 }

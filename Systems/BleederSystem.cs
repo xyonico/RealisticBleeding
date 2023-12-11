@@ -1,4 +1,5 @@
 using RealisticBleeding.Components;
+using ThunderRoad;
 using UnityEngine;
 
 namespace RealisticBleeding.Systems
@@ -8,25 +9,25 @@ namespace RealisticBleeding.Systems
         private const float FrequencyRangeMin = 1f;
         private const float FrequencyRangeMax = 2f;
 
-        //[ModOptionCategory("Multipliers", 2)]
-        //[ModOption("Blood Amount",
-        //	"Controls how often blood droplets spawn from wounds.",
-        //	valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
-        //	defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 20)]
+        [ModOptionCategory("Multipliers", 2)]
+        [ModOption("Blood Amount",
+        	"Controls how often blood droplets spawn from wounds.",
+        	valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
+        	defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 20)]
         private static float BloodAmountMultiplier = 1;
 
-        //[ModOptionCategory("Multipliers", 2)]
-        //[ModOption("Bleed Duration",
-        //	"Controls how long wounds will continue spawning blood droplets.",
-        //	valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
-        //	defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 21)]
+        [ModOptionCategory("Multipliers", 2)]
+        [ModOption("Bleed Duration",
+        	"Controls how long wounds will continue spawning blood droplets.",
+        	valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
+        	defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 21)]
         internal static float BleedDurationMultiplier = 1;
 
-        //[ModOptionCategory("Multipliers", 2)]
-        //[ModOption("Blood Trail Width",
-        //	"Controls the size of the trails left by blood droplets.",
-        //	valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
-        //	defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 22)]
+        [ModOptionCategory("Multipliers", 2)]
+        [ModOption("Blood Trail Width",
+        	"Controls the size of the trails left by blood droplets.",
+        	valueSourceType = typeof(ModOptionPercentage), valueSourceName = nameof(ModOptionPercentage.GetDefaults),
+        	defaultValueIndex = ModOptionPercentage.DefaultIndex, order = 22)]
         internal static float BloodStreakWidthMultiplier = 1;
 
         private readonly FastList<Bleeder> _bleeders;
@@ -48,7 +49,7 @@ namespace RealisticBleeding.Systems
 
                 if (bleeder.LifetimeRemaining < 0)
                 {
-                    _bleeders.RemoveAtSwapBack(index);
+                    _bleeders.RemoveAtSwapBack(index--);
 
                     continue;
                 }

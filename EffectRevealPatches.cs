@@ -8,11 +8,11 @@ namespace RealisticBleeding
     {
         private static bool _bleedFromWounds = true;
 
-        //[ModOptionCategory("Features", 0)]
-        //[ModOptionButton]
-        //[ModOption("Bleeding From Wounds",
-        //    "Whether wounds should bleed.\nNose and mouth bleed can still be enabled separately from this.",
-        //    defaultValueIndex = 1, order = 1)]
+        [ModOptionCategory("Features", 0)]
+        [ModOptionButton]
+        [ModOption("Bleeding From Wounds",
+            "Whether wounds should bleed.\nNose and mouth bleed can still be enabled separately from this.",
+            defaultValueIndex = 1, order = 1)]
         private static void SetBleedFromWounds(bool value)
         {
             _bleedFromWounds = value;
@@ -23,26 +23,26 @@ namespace RealisticBleeding
             }
         }
 
-        //[ModOptionCategory("Features", 0)]
-        //[ModOptionButton]
-        //[ModOption("Nose Bleeds",
-        //    "Whether noses should bleed when enough blunt force is applied to the head.",
-        //    defaultValueIndex = 1, order = 2)]
+        [ModOptionCategory("Features", 0)]
+        [ModOptionButton]
+        [ModOption("Nose Bleeds",
+            "Whether noses should bleed when enough blunt force is applied to the head.",
+            defaultValueIndex = 1, order = 2)]
         private static bool NoseBleedsEnabled = true;
 
-        //[ModOptionCategory("Features", 0)]
-        //[ModOptionButton]
-        //[ModOption("Mouth Bleeds",
-        //    "Whether blood should come from the mouth when torso is pierced.",
-        //    defaultValueIndex = 1, order = 3)]
+        [ModOptionCategory("Features", 0)]
+        [ModOptionButton]
+        [ModOption("Mouth Bleeds",
+            "Whether blood should come from the mouth when torso is pierced.",
+            defaultValueIndex = 1, order = 3)]
         private static bool MouthBleedsEnabled = true;
 
-        //[ModOptionCategory("Features", 0)]
-        //[ModOptionButton]
-        //[ModOption("Player Bleeds",
-        //    "Whether the player character should also bleed.\n" +
-        //    "Disabling this can improve performance.",
-        //    defaultValueIndex = 1, order = 4)]
+        [ModOptionCategory("Features", 0)]
+        [ModOptionButton]
+        [ModOption("Player Bleeds",
+            "Whether the player character should also bleed.\n" +
+            "Disabling this can improve performance.",
+            defaultValueIndex = 1, order = 4)]
         private static bool PlayerBleeding = true;
 
         public static class PlayPatch

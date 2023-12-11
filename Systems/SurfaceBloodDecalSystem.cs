@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using ThunderRoad;
 using ThunderRoad.Reveal;
-using Unity.Collections;
-using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Rendering;
 
@@ -17,6 +16,7 @@ namespace RealisticBleeding.Systems
         private const int MaxBoundsDimension = 20;
         private const int MaxCellCount = MaxBoundsDimension * MaxBoundsDimension * MaxBoundsDimension;
         private const int MaxTotalBloodDrops = 4096;
+        private const int MaxBloodDropsPerCell = 8;
 
         private static readonly int BloodDropsID = Shader.PropertyToID("_BloodDrops");
         private static readonly int CellsID = Shader.PropertyToID("_Cells");
@@ -36,11 +36,11 @@ namespace RealisticBleeding.Systems
 
         private bool _isFirstFrame = true;
 
-        //[ModOptionCategory("Performance", 1)]
-        //[ModOptionButton]
-        //[ModOption("Update Decals When Far Away",
-        //	"Whether decals should be updated on low LOD models too.\nDisabling this can improve performance.",
-        //	defaultValueIndex = 1, order = 12)]
+        [ModOptionCategory("Performance", 1)]
+        [ModOptionButton]
+        [ModOption("Update Decals When Far Away",
+            "Whether decals should be updated on low LOD models too.\nDisabling this can improve performance.",
+            defaultValueIndex = 1, order = 12)]
         private static bool UpdateDecalsWhenFarAway = true;
 
         public SurfaceBloodDecalSystem(FastList<SurfaceBloodDrop> surfaceBloodDrops)
@@ -82,14 +82,17 @@ namespace RealisticBleeding.Systems
             for (var index = 0; index < _surfaceBloodDrops.Count; index++)
             {
                 ref var bloodDrop = ref _surfaceBloodDrops[index];
+
+                if (!bloodDrop.ShouldRenderDecal) continue;
+
+                bloodDrop.ShouldRenderDecal = false;
+
                 ref var surfaceCollider = ref bloodDrop.SurfaceCollider;
 
                 var col = surfaceCollider.Collider;
 
-                var rb = col.attachedRigidbody;
-                if (!rb) continue;
-
-                if (!rb.TryGetComponent(out RagdollPart ragdollPart)) continue;
+                RagdollPart ragdollPart;
+                if ((ragdollPart = col.GetComponentInParent<RagdollPart>()) == null) continue;
 
                 var worldPos = surfaceCollider.Collider.transform.TransformPoint(bloodDrop.Position);
                 var normal = surfaceCollider.LastNormal;
@@ -138,15 +141,16 @@ namespace RealisticBleeding.Systems
                         if (!isVisible) continue;
 
                         var bounds = renderer.bounds;
+
                         if (!bounds.Contains(worldPos)) continue;
 
                         if (!_bloodDrops.TryGetValue(revealMaterialController, out var bloodDrops))
                         {
                             bloodDrops = BloodDropGrid.Get();
                             _bloodDrops[revealMaterialController] = bloodDrops;
-                        }
 
-                        bloodDrops.SetWorldBounds(bounds);
+                            bloodDrops.SetWorldBounds(bounds);
+                        }
 
                         bloodDrops.Add(in bloodDropGPU, worldPos);
                     }
@@ -167,7 +171,7 @@ namespace RealisticBleeding.Systems
                     var revealMaterialController = keyValuePair.Key;
                     var bloodDropsGrid = keyValuePair.Value;
 
-                    bloodDropsGrid.StoreIntoBuffers(_bloodDropsBuffer, _cellsBuffer);
+                    bloodDropsGrid.StoreIntoBuffers(_commandBuffer, _bloodDropsBuffer, _cellsBuffer);
 
                     var shouldClear = revealMaterialController.ActivateRevealMaterials();
 
@@ -215,31 +219,31 @@ namespace RealisticBleeding.Systems
         {
             public const int SizeOf = sizeof(float) * 8;
 
-            public Vector3 StartPos;
-            public float InverseSqrRadius;
-            public Vector3 EndPos;
-            private float _padding;
+            public Vector4 StartPosAndRadius;
+            public Vector4 EndPos;
 
             public BloodDropGPU(Vector3 startPos, Vector3 endPos, float radius)
             {
-                StartPos = startPos;
+                StartPosAndRadius = startPos;
                 EndPos = endPos;
-                InverseSqrRadius = 1 / (radius * radius);
-                _padding = 0;
+
+                var inverseSquareRadius = 1 / (radius * radius);
+
+                StartPosAndRadius.w = inverseSquareRadius;
             }
         }
 
         private struct CellGPU
         {
-            public const int SizeOf = sizeof(int) * 2;
+            public const int SizeOf = sizeof(float) * 2;
 
-            public uint StartIndex;
-            public uint Count;
+            public float StartIndex;
+            public float Count;
 
             public CellGPU(int startIndex, int count)
             {
-                StartIndex = (uint)startIndex;
-                Count = (uint)count;
+                StartIndex = startIndex;
+                Count = count;
             }
         }
 
@@ -247,14 +251,17 @@ namespace RealisticBleeding.Systems
         {
             //private static readonly ObjectPool<BloodDropGrid> Pool = new ObjectPool<BloodDropGrid>(null, null);
 
-            private static readonly uint2[] CellArray = new uint2[MaxCellCount];
-            private static readonly float4x2[] BloodDropsArray = new float4x2[MaxTotalBloodDrops];
+            private static readonly Vector2[] CellArray = new Vector2[MaxCellCount];
+
+            // I use a Matrix4x4 here instead of BloodDropGPU because Nomad doesn't support user-defined types in ComputeBuffers
+            // So I use a built-in type here instead. Matrix4x4 is twice the size of BloodDropGPU, so I store two drops in each.
+            private static readonly Matrix4x4[] BloodDropsArray = new Matrix4x4[MaxTotalBloodDrops / 2];
 
             private static readonly Vector3Int MaxGridSize =
                 new Vector3Int(MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension);
 
-            private readonly List<float4x2>[,,] _grid =
-                new List<float4x2>[MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension];
+            private readonly List<BloodDropGPU>[,,] _grid =
+                new List<BloodDropGPU>[MaxBoundsDimension, MaxBoundsDimension, MaxBoundsDimension];
 
             public Matrix4x4 Matrix { get; private set; }
             public Vector3Int Dimensions { get; private set; }
@@ -324,14 +331,10 @@ namespace RealisticBleeding.Systems
 
                 if (list == null)
                 {
-                    list = new List<float4x2>();
+                    list = new List<BloodDropGPU>();
                 }
 
-                list.Add(new float4x2
-                {
-                    c0 = new float4(bloodDropGPU.StartPos, bloodDropGPU.InverseSqrRadius),
-                    c1 = new float4(bloodDropGPU.EndPos, 0)
-                });
+                list.Add(bloodDropGPU);
             }
 
             private void Clear()
@@ -350,12 +353,14 @@ namespace RealisticBleeding.Systems
                 }
             }
 
-            public void StoreIntoBuffers(ComputeBuffer bloodDropsBuffer, ComputeBuffer cellsBuffer)
+            public void StoreIntoBuffers(CommandBuffer commandBuffer, ComputeBuffer bloodDropsBuffer, ComputeBuffer cellsBuffer)
             {
                 var dropsIndex = 0;
 
                 var dimensions = Dimensions;
                 var totalCells = dimensions.x * dimensions.y * dimensions.z;
+
+                var bloodDropsSpan = MemoryMarshal.Cast<Matrix4x4, BloodDropGPU>(BloodDropsArray);
 
                 for (var z = 0; z < dimensions.z; z++)
                 {
@@ -371,26 +376,24 @@ namespace RealisticBleeding.Systems
                             if (drops != null && drops.Count > 0)
                             {
                                 var maxCount = MaxTotalBloodDrops - dropsIndex;
-                                var count = Mathf.Min(drops.Count, maxCount);
+                                var count = Mathf.Min(drops.Count, Mathf.Min(maxCount, MaxBloodDropsPerCell));
 
-                                if (count <= 0) continue;
-
-                                for (var i = 0; i < drops.Count; i++)
+                                for (var i = 0; i < count; i++)
                                 {
-                                    BloodDropsArray[dropsIndex + i] = drops[i];
+                                    bloodDropsSpan[dropsIndex + i] = drops[i];
                                 }
 
                                 dropsIndex += count;
                                 cellGPU.Count = (uint)count;
                             }
 
-                            CellArray[flatIndex] = new uint2(cellGPU.StartIndex, cellGPU.Count);
+                            CellArray[flatIndex] = new Vector2(cellGPU.StartIndex, cellGPU.Count);
                         }
                     }
                 }
 
-                bloodDropsBuffer.SetData(BloodDropsArray, 0, 0, dropsIndex);
-                cellsBuffer.SetData(CellArray, 0, 0, totalCells);
+                commandBuffer.SetBufferData(bloodDropsBuffer, BloodDropsArray, 0, 0, dropsIndex);
+                commandBuffer.SetBufferData(cellsBuffer, CellArray, 0, 0, totalCells);
             }
 
             private int GetFlattenedIndex(int x, int y, int z)

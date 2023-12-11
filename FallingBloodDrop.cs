@@ -19,12 +19,19 @@ namespace RealisticBleeding
             Size = size;
             LifetimeRemaining = lifetime;
         }
-        
+
         public static void OnFallingDropHitEnvironment(in FallingBloodDrop bloodDrop, Vector3 surfaceNormal)
         {
+            if (Application.platform == RuntimePlatform.Android) return;
+
             if (_bloodDropDecalData == null)
             {
                 _bloodDropDecalData = Catalog.GetData<EffectData>("DropBlood");
+            }
+
+            if (surfaceNormal.magnitude < 0.01f)
+            {
+                surfaceNormal = Vector3.up;
             }
 
             var rotation = Quaternion.AngleAxis(Random.Range(0f, 360f), surfaceNormal) *

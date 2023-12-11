@@ -13,6 +13,7 @@ namespace RealisticBleeding
         public Creature DisposeWithCreature;
         public SurfaceCollider SurfaceCollider;
         public DripTime DripTime;
+        public bool ShouldRenderDecal;
 
         public SurfaceBloodDrop(in FallingBloodDrop fallingBloodDrop, Collider collider)
         {
@@ -24,6 +25,8 @@ namespace RealisticBleeding
 
             DisposeWithCreature = null;
             SurfaceCollider = default;
+
+            ShouldRenderDecal = false;
 
             OnBloodDropHitSurface(ref this, collider);
         }

@@ -53,6 +53,9 @@
         <Reference Include="ThunderRoad, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
         </Reference>
+        <Reference Include="Unity.InputSystem">
+          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.Mathematics">
           <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.Mathematics.dll</HintPath>
         </Reference>
@@ -89,15 +92,13 @@
         <Compile Include="Properties\AssemblyInfo.cs" />
         <Compile Include="Systems\BaseSystem.cs" />
         <Compile Include="Systems\BleederSystem.cs" />
+        <Compile Include="Systems\DebugSurfaceBloodSystem.cs" />
         <Compile Include="Systems\DisposeWithCreatureSystem.cs" />
         <Compile Include="Systems\FallingBloodDropRenderingSystem.cs" />
         <Compile Include="Systems\FallingBloodDropSystem.cs" />
         <Compile Include="Systems\SurfaceBloodDecalSystem.cs" />
         <Compile Include="Systems\SurfaceBloodDropUpdateSystem.cs" />
         <Compile Include="Vector3Extensions.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <None Include="packages.config" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="RealisticBloodDecal.shader" />

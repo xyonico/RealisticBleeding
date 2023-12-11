@@ -22,26 +22,24 @@
 
             struct BloodDrop
             {
-                float3 startPos;
-                float inverseSqrRadius;
-                float3 endPos;
-                float padding;
+                float4 startPosAndRadius;
+                float4 endPos;
             };
 
             struct Cell
             {
-                uint startBloodDropIndex;
-                uint count;
+                float startBloodDropIndex;
+                float count;
             };
 
             StructuredBuffer<BloodDrop> _BloodDrops;
             StructuredBuffer<Cell> _Cells;
 
             float3 _BoundsDimensions;
-            uint _BoundsVolume;
+            float _BoundsVolume;
             float4x4 _BoundsMatrix;
 
-            inline uint getCellIndex(float3 coord)
+            inline float getCellIndex(float3 coord)
             {
                 return coord.z * _BoundsDimensions.x * _BoundsDimensions.y + coord.y * _BoundsDimensions.x + coord.x;
             }
@@ -88,7 +86,7 @@
 
                 float3 coord = floor(o.boundsPos * _BoundsDimensions);
                 
-                uint cellIndex = getCellIndex(coord);
+                float cellIndex = getCellIndex(coord);
 
                 if (cellIndex < 0 || cellIndex > _BoundsVolume)
                 {
@@ -102,15 +100,15 @@
                     discard;
                 }
 
-                uint count = min(cell.count, 8);
+                float count = min(cell.count, 8);
                 
-                for (uint i = 0; i < count; i++)
+                for (float i = 0; i < count; i++)
                 {
                     BloodDrop bloodDrop = _BloodDrops[cell.startBloodDropIndex + i];
 
-                    float sqrDist = sqrDistanceFromLine(o.worldPos, bloodDrop.startPos, bloodDrop.endPos);
+                    float sqrDist = sqrDistanceFromLine(o.worldPos, bloodDrop.startPosAndRadius.xyz, bloodDrop.endPos);
 
-                    float closeness = 1 - saturate(sqrDist * bloodDrop.inverseSqrRadius);
+                    float closeness = 1 - saturate(sqrDist * bloodDrop.startPosAndRadius.w);
 
                     output += closeness;
                 }

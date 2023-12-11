@@ -29,7 +29,7 @@ namespace RealisticBleeding.Systems
                 {
                     bloodDrop.Position = hit.point;
 
-                    _fallingBloodDrops.RemoveAtSwapBack(index);
+                    _fallingBloodDrops.RemoveAtSwapBack(index--);
 
                     if (EntryPoint.EnvironmentLayerMask.Contains(hit.collider.gameObject.layer))
                     {
@@ -49,7 +49,7 @@ namespace RealisticBleeding.Systems
 
                     if (bloodDrop.LifetimeRemaining < 0)
                     {
-                        _fallingBloodDrops.RemoveAtSwapBack(index);
+                        _fallingBloodDrops.RemoveAtSwapBack(index--);
                     }
                 }
             }

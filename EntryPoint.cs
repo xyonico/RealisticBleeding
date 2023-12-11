@@ -4,6 +4,7 @@ using RealisticBleeding.Components;
 using RealisticBleeding.Systems;
 using ThunderRoad;
 using UnityEngine;
+using Keyboard = UnityEngine.InputSystem.Keyboard;
 using Object = UnityEngine.Object;
 
 namespace RealisticBleeding
@@ -12,11 +13,11 @@ namespace RealisticBleeding
     {
         private static bool _hasLoaded;
 
-        //[ModOptionCategory("Features", 0)]
-        //[ModOptionButton]
-        //[ModOption("Pause Simulation",
-        //	"Pauses all blood droplet simulation if enabled.\nGood for quickly disabling the mod temporarily to see the performance difference.",
-        //	order = 0)]
+        [ModOptionCategory("Features", 0)]
+        [ModOptionButton]
+        [ModOption("Pause Simulation",
+            "Pauses all blood droplet simulation if enabled.\nGood for quickly disabling the mod temporarily to see the performance difference.",
+            order = 0)]
         public static bool PauseSimulation;
 
         internal static SphereCollider Collider { get; private set; }
@@ -59,7 +60,7 @@ namespace RealisticBleeding
             EffectRevealPatches.PlayPatch.Init();
 
             _fixedUpdateSystems = new List<BaseSystem>
-            { 
+            {
                 new BleederSystem(Bleeders, SurfaceBloodDrops),
                 new FallingBloodDropSystem(FallingBloodDrops, SurfaceBloodDrops),
                 new SurfaceBloodDropUpdateSystem(SurfaceBloodDrops, FallingBloodDrops, Collider),
@@ -68,7 +69,8 @@ namespace RealisticBleeding
 
             _updateSystems = new List<BaseSystem>
             {
-                new FallingBloodDropRenderingSystem(FallingBloodDrops, sphereMesh, BloodMaterial.Material)
+                new FallingBloodDropRenderingSystem(FallingBloodDrops, sphereMesh, BloodMaterial.Material),
+                //new DebugSurfaceBloodSystem(SurfaceBloodDrops, sphereMesh, BloodMaterial.DebugMaterial)
             };
 
             var disposeWithCreatureSystem = new DisposeWithCreatureSystem(SurfaceBloodDrops, Bleeders);
@@ -76,10 +78,30 @@ namespace RealisticBleeding
 
         internal static void OnUpdate()
         {
+            if (Keyboard.current.tKey.wasPressedThisFrame)
+            {
+                var cam = Spectator.local.cam.transform;
+                const float hitRange = 10f;
+
+                if (Physics.Raycast(cam.position, cam.forward, out var hit, hitRange, SurfaceLayerMask))
+                {
+                    var rigidbody = hit.collider.attachedRigidbody;
+
+                    if (rigidbody == null) return;
+
+                    if (rigidbody.TryGetComponent(out RagdollPart part))
+                    {
+                        var fallingDrop = new FallingBloodDrop(hit.point, Vector3.zero, 0.01f, 8);
+                        var surfaceDrop = new SurfaceBloodDrop(in fallingDrop, hit.collider);
+                        SurfaceBloodDrops.TryAdd(surfaceDrop);
+                    }
+                }
+            }
+
             if (PauseSimulation) return;
 
             var deltaTime = Time.deltaTime;
-            
+
             foreach (var updateSystem in _updateSystems)
             {
                 try
@@ -96,9 +118,9 @@ namespace RealisticBleeding
         internal static void OnFixedUpdate()
         {
             if (PauseSimulation) return;
-            
+
             var deltaTime = Time.deltaTime;
-            
+
             foreach (var fixedUpdateSystem in _fixedUpdateSystems)
             {
                 try
