@@ -60,7 +60,7 @@ namespace RealisticBleeding
                     centerEyes.rotation, Vector2.zero,
                     2 * frequencyMultiplier, sizeMultiplier, 2 * durationMultiplier, creature);
 
-                EntryPoint.Bleeders.TryAdd(bleeder);
+                EntryPoint.Bleeders.TryAddNoResize(bleeder);
             }
         }
 

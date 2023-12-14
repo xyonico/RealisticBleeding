@@ -35,9 +35,10 @@
             StructuredBuffer<BloodDrop> _BloodDrops;
             StructuredBuffer<Cell> _Cells;
 
+            float3 _BoundsMinPosition;
+            float3 _BoundsWorldToLocalSize;
             float3 _BoundsDimensions;
             float _BoundsVolume;
-            float4x4 _BoundsMatrix;
 
             inline float getCellIndex(float3 coord)
             {
@@ -66,7 +67,7 @@
                 v.vertex = float4(v.uv.xy, 0.0, 1.0);
                 o.vertex = mul(UNITY_MATRIX_P, v.vertex);
 
-                o.boundsPos = mul(_BoundsMatrix, float4(o.worldPos, 1)).xyz;
+                o.boundsPos = (o.worldPos - _BoundsMinPosition) * _BoundsWorldToLocalSize;
                 
                 return o;
             }
@@ -84,7 +85,7 @@
             {
                 float output = 0;
 
-                float3 coord = floor(o.boundsPos * _BoundsDimensions);
+                float3 coord = floor(o.boundsPos);
                 
                 float cellIndex = getCellIndex(coord);
 

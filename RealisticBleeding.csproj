@@ -53,6 +53,9 @@
         <Reference Include="ThunderRoad, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
         </Reference>
+        <Reference Include="Unity.Collections">
+          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.Collections.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.InputSystem">
           <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
         </Reference>
@@ -78,6 +81,7 @@
     <ItemGroup>
         <Compile Include="Components\DripTime.cs" />
         <Compile Include="FallingBloodDrop.cs" />
+        <Compile Include="InsertIntoSortedListExtensions.cs" />
         <Compile Include="SurfaceBloodDrop.cs" />
         <Compile Include="BloodMaterial.cs" />
         <Compile Include="Components\Bleeder.cs" />

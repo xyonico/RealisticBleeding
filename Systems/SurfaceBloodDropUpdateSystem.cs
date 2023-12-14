@@ -162,7 +162,7 @@ namespace RealisticBleeding.Systems
                     var rb = surfaceCollider.Collider.attachedRigidbody;
                     bloodDrop.Velocity = rb ? rb.GetPointVelocity(bloodDrop.Position) : Vector3.zero;
 
-                    _fallingBloodDrops.TryAdd(new FallingBloodDrop(bloodDrop.Position, bloodDrop.Velocity,
+                    _fallingBloodDrops.TryAddNoResize(new FallingBloodDrop(bloodDrop.Position, bloodDrop.Velocity,
                         bloodDrop.Size, bloodDrop.LifetimeRemaining));
 
                     _surfaceBloodDrops.RemoveAtSwapBack(index--);

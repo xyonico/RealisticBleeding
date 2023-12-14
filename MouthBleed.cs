@@ -48,7 +48,7 @@ namespace RealisticBleeding
             var bleeder = new Bleeder(jawBone, closestCollider, position, rotation, new Vector2(0.05f, 0),
                 frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f, creature);
 
-            if (EntryPoint.Bleeders.TryAdd(bleeder))
+            if (EntryPoint.Bleeders.TryAddNoResize(bleeder))
             {
                 creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
             }

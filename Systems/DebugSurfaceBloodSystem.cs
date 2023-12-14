@@ -29,7 +29,7 @@ namespace RealisticBleeding.Systems
 
                 var scale = Vector3.one * bloodDrop.Size;
 
-                scale.z *= 4f;
+                scale.z = SurfaceBloodDecalSystem.ProjectionDepth * 2;
 
                 var matrix = Matrix4x4.TRS(worldPosition, rotation, scale);
 

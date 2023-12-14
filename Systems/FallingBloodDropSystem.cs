@@ -40,7 +40,7 @@ namespace RealisticBleeding.Systems
 
                     var surfaceBloodDrop = new SurfaceBloodDrop(in bloodDrop, hit.collider);
 
-                    _surfaceBloodDrops.TryAdd(in surfaceBloodDrop);
+                    _surfaceBloodDrops.TryAddNoResize(in surfaceBloodDrop);
                 }
                 else
                 {

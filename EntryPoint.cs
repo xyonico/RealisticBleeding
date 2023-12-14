@@ -63,8 +63,7 @@ namespace RealisticBleeding
             {
                 new BleederSystem(Bleeders, SurfaceBloodDrops),
                 new FallingBloodDropSystem(FallingBloodDrops, SurfaceBloodDrops),
-                new SurfaceBloodDropUpdateSystem(SurfaceBloodDrops, FallingBloodDrops, Collider),
-                new SurfaceBloodDecalSystem(SurfaceBloodDrops)
+                new SurfaceBloodDropUpdateSystem(SurfaceBloodDrops, FallingBloodDrops, Collider)
             };
 
             _updateSystems = new List<BaseSystem>
@@ -73,6 +72,7 @@ namespace RealisticBleeding
                 //new DebugSurfaceBloodSystem(SurfaceBloodDrops, sphereMesh, BloodMaterial.DebugMaterial)
             };
 
+            var surfaceBloodDecalSystem = new SurfaceBloodDecalSystem(SurfaceBloodDrops);
             var disposeWithCreatureSystem = new DisposeWithCreatureSystem(SurfaceBloodDrops, Bleeders);
         }
 
@@ -93,7 +93,7 @@ namespace RealisticBleeding
                     {
                         var fallingDrop = new FallingBloodDrop(hit.point, Vector3.zero, 0.01f, 8);
                         var surfaceDrop = new SurfaceBloodDrop(in fallingDrop, hit.collider);
-                        SurfaceBloodDrops.TryAdd(surfaceDrop);
+                        SurfaceBloodDrops.TryAddNoResize(surfaceDrop);
                     }
                 }
             }
@@ -110,7 +110,9 @@ namespace RealisticBleeding
                 }
                 catch (Exception e)
                 {
+                    Debug.Log("Update");
                     Debug.LogException(e);
+                    Debug.Log(e.StackTrace);
                 }
             }
         }
@@ -129,7 +131,9 @@ namespace RealisticBleeding
                 }
                 catch (Exception e)
                 {
+                    Debug.Log("Fixed update");
                     Debug.LogException(e);
+                    Debug.Log(e.StackTrace);
                 }
             }
         }

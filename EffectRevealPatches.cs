@@ -196,7 +196,7 @@ namespace RealisticBleeding
                 var bleeder = new Bleeder(ragdollPart.transform, closestCollider, position, rotation,
                     dimensions, frequencyMultiplier, sizeMultiplier, durationMultiplier, creature);
 
-                EntryPoint.Bleeders.TryAdd(bleeder);
+                EntryPoint.Bleeders.TryAddNoResize(bleeder);
             }
 
             /*

@@ -82,7 +82,7 @@ namespace RealisticBleeding.Systems
                             new FallingBloodDrop(dropPosition, randomVelocity, 0.01f * bleeder.SizeMultiplier,
                                 Random.Range(5f, 7f)), bleeder.Collider);
 
-                    _surfaceBloodDrops.TryAdd(in bloodDrop);
+                    _surfaceBloodDrops.TryAddNoResize(in bloodDrop);
                 }
             }
         }
