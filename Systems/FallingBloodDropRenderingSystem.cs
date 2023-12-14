@@ -1,3 +1,4 @@
+using ThunderRoad;
 using UnityEngine;
 
 namespace RealisticBleeding.Systems
@@ -6,17 +7,27 @@ namespace RealisticBleeding.Systems
 	{
 		private readonly FastList<FallingBloodDrop> _fallingBloodDrops;
 		private readonly Mesh _mesh;
-		private readonly Material _material;
+		
+		private Material _material;
 
-		public FallingBloodDropRenderingSystem(FastList<FallingBloodDrop> fallingBloodDrops, Mesh mesh, Material material)
+		private bool _firstFrame = true;
+
+		public FallingBloodDropRenderingSystem(FastList<FallingBloodDrop> fallingBloodDrops, Mesh mesh)
 		{
 			_fallingBloodDrops = fallingBloodDrops;
 			_mesh = mesh;
-			_material = material;
 		}
 
 		protected override void UpdateInternal(float deltaTime)
 		{
+			if (_firstFrame)
+			{
+				_firstFrame = false;
+				
+				Catalog.LoadAssetAsync("RealisticBleeding/BloodDrop",
+					(Material material) => { _material = material; }, null);
+			}
+			
 			for (var index = 0; index < _fallingBloodDrops.Count; index++)
 			{
 				ref var bloodDrop = ref _fallingBloodDrops[index];

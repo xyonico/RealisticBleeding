@@ -83,7 +83,6 @@
         <Compile Include="FallingBloodDrop.cs" />
         <Compile Include="InsertIntoSortedListExtensions.cs" />
         <Compile Include="SurfaceBloodDrop.cs" />
-        <Compile Include="BloodMaterial.cs" />
         <Compile Include="Components\Bleeder.cs" />
         <Compile Include="Components\SurfaceCollider.cs" />
         <Compile Include="EffectRevealPatches.cs" />

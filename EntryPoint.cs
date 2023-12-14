@@ -65,10 +65,10 @@ namespace RealisticBleeding
                 new FallingBloodDropSystem(FallingBloodDrops, SurfaceBloodDrops),
                 new SurfaceBloodDropUpdateSystem(SurfaceBloodDrops, FallingBloodDrops, Collider)
             };
-
+            
             _updateSystems = new List<BaseSystem>
             {
-                new FallingBloodDropRenderingSystem(FallingBloodDrops, sphereMesh, BloodMaterial.Material),
+                new FallingBloodDropRenderingSystem(FallingBloodDrops, sphereMesh),
                 //new DebugSurfaceBloodSystem(SurfaceBloodDrops, sphereMesh, BloodMaterial.DebugMaterial)
             };
 
