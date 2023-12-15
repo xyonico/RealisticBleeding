@@ -41,13 +41,17 @@ namespace RealisticBleeding.Systems
 
         private bool _isFirstFrame = true;
 
+        private bool _enableReveal;
+
+        /*
         [ModOptionCategory("Performance", 1)]
         [ModOptionButton]
         [ModOption("Update Decals When Far Away",
             "Whether decals should be updated on low LOD models too.\nDisabling this can improve performance.",
             defaultValueIndex = 1, order = 12)]
         private static bool UpdateDecalsWhenFarAway = true;
-
+        */
+        
         public SurfaceBloodDecalSystem(FastList<SurfaceBloodDrop> surfaceBloodDrops)
         {
             _surfaceBloodDrops = surfaceBloodDrops;
@@ -84,6 +88,13 @@ namespace RealisticBleeding.Systems
                 if (ReferenceEquals(_decalMaterial, null))
                 {
                     return;
+                }
+
+                if (_enableReveal)
+                {
+                    RevealMaskProjection.EnableReveal();
+
+                    _enableReveal = false;
                 }
 
                 for (var index = 0; index < _surfaceBloodDrops.Count; index++)
@@ -196,6 +207,8 @@ namespace RealisticBleeding.Systems
                     if (shouldClear)
                     {
                         _commandBuffer.ClearRenderTarget(false, true, Color.clear);
+
+                        _enableReveal = true;
                     }
 
                     var renderer = revealMaterialController.GetRenderer();
@@ -208,8 +221,6 @@ namespace RealisticBleeding.Systems
 
                     context.ExecuteCommandBuffer(_commandBuffer);
                 }
-
-                RevealMaskProjection.EnableReveal();
 
                 // Clean up
                 foreach (var bloodDropGrid in _bloodDrops.Values)
