@@ -57,6 +57,7 @@ namespace RealisticBleeding
             {
                 if (eventTime == EventTime.OnEnd) return;
                 if (!GameManager.options.enableCharacterReveal) return;
+                if (EntryPoint.PauseSimulation) return;
 
                 if (collisionInstance == null) return;
 
