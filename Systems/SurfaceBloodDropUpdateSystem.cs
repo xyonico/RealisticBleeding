@@ -33,7 +33,7 @@ namespace RealisticBleeding.Systems
         private static float BloodSurfaceFrictionMultiplier = 1;
 
         // Blood dripping
-        private const float MaxVelocityToDrip = 0.1f;
+        private const float MaxVelocityToDrip = 0.08f;
 
         public SurfaceBloodDropUpdateSystem(FastList<SurfaceBloodDrop> surfaceBloodDrops,
             FastList<FallingBloodDrop> fallingBloodDrops, SphereCollider collider)
