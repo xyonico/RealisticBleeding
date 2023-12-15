@@ -85,7 +85,8 @@ namespace RealisticBleeding
             var rb = collider.attachedRigidbody;
             if (!rb) return;
 
-            if (rb.TryGetComponent(out RagdollPart ragdollPart))
+            RagdollPart ragdollPart;
+            if ((ragdollPart = rb.GetComponent<RagdollPart>()) != null)
             {
                 surfaceBloodDrop.DisposeWithCreature = ragdollPart.ragdoll.creature;
             }

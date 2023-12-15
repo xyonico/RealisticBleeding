@@ -110,9 +110,7 @@ namespace RealisticBleeding
                 }
                 catch (Exception e)
                 {
-                    Debug.Log("Update");
                     Debug.LogException(e);
-                    Debug.Log(e.StackTrace);
                 }
             }
         }
@@ -131,9 +129,7 @@ namespace RealisticBleeding
                 }
                 catch (Exception e)
                 {
-                    Debug.Log("Fixed update");
                     Debug.LogException(e);
-                    Debug.Log(e.StackTrace);
                 }
             }
         }

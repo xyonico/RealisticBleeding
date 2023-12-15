@@ -51,7 +51,7 @@ namespace RealisticBleeding.Systems
             defaultValueIndex = 1, order = 12)]
         private static bool UpdateDecalsWhenFarAway = true;
         */
-        
+
         public SurfaceBloodDecalSystem(FastList<SurfaceBloodDrop> surfaceBloodDrops)
         {
             _surfaceBloodDrops = surfaceBloodDrops;
@@ -59,7 +59,7 @@ namespace RealisticBleeding.Systems
             RenderPipelineManager.beginFrameRendering += OnBeginFrameRendering;
 
             _bloodDropsBuffer = new ComputeBuffer(MaxTotalBloodDrops, BloodDropGPU.SizeOf);
-            _cellsBuffer = new ComputeBuffer(MaxCellCount, CellGPU.SizeOf);
+            _cellsBuffer = new ComputeBuffer(MaxCellCount, sizeof(float) * 2);
             _commandBuffer = new CommandBuffer { name = "Realistic Blood - Decal Drawing" };
         }
 
@@ -167,12 +167,17 @@ namespace RealisticBleeding.Systems
 
                             if (!bounds.Contains(startPos) && !bounds.Contains(endPos)) continue;
 
-                            if (!_bloodDrops.TryGetValue(revealMaterialController, out var bloodDrops))
+                            BloodDropGrid bloodDrops;
+                            if (!_bloodDrops.ContainsKey(revealMaterialController))
                             {
                                 bloodDrops = BloodDropGrid.Get();
                                 _bloodDrops[revealMaterialController] = bloodDrops;
 
                                 bloodDrops.SetWorldBounds(bounds);
+                            }
+                            else
+                            {
+                                bloodDrops = _bloodDrops[revealMaterialController];
                             }
 
                             bloodDrops.Add(in bloodDropGPU, worldPos);
@@ -233,7 +238,6 @@ namespace RealisticBleeding.Systems
             catch (Exception e)
             {
                 Debug.LogException(e);
-                Debug.Log(e.StackTrace);
             }
         }
 
@@ -253,21 +257,6 @@ namespace RealisticBleeding.Systems
                 InverseSquareRadius = 1 / (radius * radius);
                 EndPos = endPos;
                 _padding = 0;
-            }
-        }
-
-        [StructLayout(LayoutKind.Sequential)]
-        private struct CellGPU
-        {
-            public const int SizeOf = sizeof(float) * 2;
-
-            public float StartIndex;
-            public float Count;
-
-            public CellGPU(int startIndex, int count)
-            {
-                StartIndex = startIndex;
-                Count = count;
             }
         }
 
@@ -339,7 +328,7 @@ namespace RealisticBleeding.Systems
                         AddToCell(in bloodDrop, startGridPos);
                     }
                 }
-                
+
                 if (TryConvertWorldToGrid(bloodDrop.EndPos, out var endGridPos))
                 {
                     if (endGridPos != centerGridPos && endGridPos != startGridPos)
@@ -419,7 +408,7 @@ namespace RealisticBleeding.Systems
 
                         bloodDropsSpan[dropsIndex + currentDropCount++] = bloodDropInCell.BloodDrop;
                     }
-                    
+
                     if (currentDropCount > 0)
                     {
                         var flatIndex = GetFlattenedIndex(prevCellCoord, dimensions);
@@ -428,7 +417,7 @@ namespace RealisticBleeding.Systems
                 }
 
                 var totalDrops = dropsIndex + currentDropCount;
-                
+
                 if (totalDrops > 0)
                 {
                     commandBuffer.SetBufferData(bloodDropsBuffer, BloodDropsArray, 0, 0,
