@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using RealisticBleeding.Components;
 using ThunderRoad;
@@ -33,20 +34,27 @@ namespace RealisticBleeding.Systems
 
         private void OnCreatureDespawnEvent(Creature creature)
         {
-            for (var index = 0; index < _surfaceBloodDrops.Count; index++)
+            try
             {
-                if (_surfaceBloodDrops[index].DisposeWithCreature == creature)
+                for (var index = 0; index < _surfaceBloodDrops.Count; index++)
                 {
-                    _surfaceBloodDrops.RemoveAtSwapBack(index--);
+                    if (_surfaceBloodDrops[index].DisposeWithCreature == creature)
+                    {
+                        _surfaceBloodDrops.RemoveAtSwapBack(index--);
+                    }
+                }
+
+                for (var index = 0; index < _bleeders.Count; index++)
+                {
+                    if (_bleeders[index].DisposeWithCreature == creature)
+                    {
+                        _bleeders.RemoveAtSwapBack(index--);
+                    }
                 }
             }
-
-            for (var index = 0; index < _bleeders.Count; index++)
+            catch (Exception e)
             {
-                if (_bleeders[index].DisposeWithCreature == creature)
-                {
-                    _bleeders.RemoveAtSwapBack(index--);
-                }
+                Debug.Log(e);
             }
         }
     }
