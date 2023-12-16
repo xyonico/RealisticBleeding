@@ -37,8 +37,6 @@ namespace RealisticBleeding.Systems
         {
             try
             {
-                Debug.Log($"OnCreatureSpawn: {creature.name}, isPlayer: {creature.isPlayer}");
-
                 creature.OnDespawnEvent += time =>
                 {
                     if (time == EventTime.OnStart) return;
