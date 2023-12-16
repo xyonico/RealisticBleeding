@@ -1,3 +1,4 @@
+using System;
 using ThunderRoad;
 using UnityEngine;
 using System.Collections;
@@ -16,41 +17,48 @@ namespace RealisticBleeding
         public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier,
             float sizeMultiplier = 1)
         {
-            if (creature == null) return;
-
-            if (!BleedingCreatures.Add(creature)) return;
-
-            var jawBone = creature.jaw;
-
-            var position = jawBone.TransformPoint(LowerLipOffset);
-            var rotation = jawBone.rotation * RotationOffset;
-
-            Collider closestCollider = null;
-            var closestDistance = float.PositiveInfinity;
-
-            var colliders = creature.ragdoll.headPart.colliderGroup.colliders;
-
-            for (var i = 0; i < colliders.Count; i++)
+            try
             {
-                var collider = colliders[i];
+                if (creature == null) return;
 
-                var distance = Vector3.Distance(collider.ClosestPoint(position), position);
+                if (!BleedingCreatures.Add(creature)) return;
 
-                if (distance < closestDistance)
+                var jawBone = creature.jaw;
+
+                var position = jawBone.TransformPoint(LowerLipOffset);
+                var rotation = jawBone.rotation * RotationOffset;
+
+                Collider closestCollider = null;
+                var closestDistance = float.PositiveInfinity;
+
+                var colliders = creature.ragdoll.headPart.colliderGroup.colliders;
+
+                for (var i = 0; i < colliders.Count; i++)
                 {
-                    closestCollider = collider;
-                    closestDistance = distance;
+                    var collider = colliders[i];
+
+                    var distance = Vector3.Distance(collider.ClosestPoint(position), position);
+
+                    if (distance < closestDistance)
+                    {
+                        closestCollider = collider;
+                        closestDistance = distance;
+                    }
+                }
+
+                if (closestCollider == null) return;
+
+                var bleeder = new Bleeder(jawBone, closestCollider, position, rotation, new Vector2(0.05f, 0),
+                    frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f, creature);
+
+                if (EntryPoint.Bleeders.TryAddNoResize(bleeder))
+                {
+                    creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
                 }
             }
-
-            if (closestCollider == null) return;
-
-            var bleeder = new Bleeder(jawBone, closestCollider, position, rotation, new Vector2(0.05f, 0),
-                frequencyMultiplier * 4, sizeMultiplier * 0.75f, durationMultiplier * 0.3f, creature);
-
-            if (EntryPoint.Bleeders.TryAddNoResize(bleeder))
+            catch (Exception e)
             {
-                creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
+                Debug.LogException(e);
             }
         }
 
@@ -75,7 +83,14 @@ namespace RealisticBleeding
         {
             yield return new WaitForSeconds(delay);
 
-            BleedingCreatures.Remove(creature);
+            try
+            {
+                BleedingCreatures.Remove(creature);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
     }
 }

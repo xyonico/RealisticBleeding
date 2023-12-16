@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using RealisticBleeding.Components;
@@ -16,51 +17,58 @@ namespace RealisticBleeding
         public static void SpawnOn(Creature creature, float durationMultiplier, float frequencyMultiplier,
             float sizeMultiplier = 1)
         {
-            if (creature == null) return;
-            var centerEyes = creature.centerEyes;
-
-            if (centerEyes == null) return;
-
-            if (!BleedingCreatures.Add(creature)) return;
-
-            Collider closestCollider = null;
-            var closestDistance = float.PositiveInfinity;
-
-            var colliders = creature.ragdoll.headPart.colliderGroup.colliders;
-
-            var position = centerEyes.TransformPoint(UnderNoseOffset);
-
-            for (var i = 0; i < colliders.Count; i++)
+            try
             {
-                var collider = colliders[i];
+                if (creature == null) return;
+                var centerEyes = creature.centerEyes;
 
-                var distance = Vector3.Distance(collider.ClosestPoint(position), position);
+                if (centerEyes == null) return;
 
-                if (distance < closestDistance)
+                if (!BleedingCreatures.Add(creature)) return;
+
+                Collider closestCollider = null;
+                var closestDistance = float.PositiveInfinity;
+
+                var colliders = creature.ragdoll.headPart.colliderGroup.colliders;
+
+                var position = centerEyes.TransformPoint(UnderNoseOffset);
+
+                for (var i = 0; i < colliders.Count; i++)
                 {
-                    closestCollider = collider;
-                    closestDistance = distance;
+                    var collider = colliders[i];
+
+                    var distance = Vector3.Distance(collider.ClosestPoint(position), position);
+
+                    if (distance < closestDistance)
+                    {
+                        closestCollider = collider;
+                        closestDistance = distance;
+                    }
+                }
+
+                if (closestCollider == null) return;
+
+                SpawnNoseBleeder(-NostrilOffset); // left nostril
+                SpawnNoseBleeder(NostrilOffset); // right nostril
+
+                creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
+
+                return;
+
+                void SpawnNoseBleeder(float nostrilOffset)
+                {
+                    var noseOffset = UnderNoseOffset;
+                    noseOffset.x = nostrilOffset;
+                    var bleeder = new Bleeder(centerEyes, closestCollider, centerEyes.TransformPoint(noseOffset),
+                        centerEyes.rotation, Vector2.zero,
+                        2 * frequencyMultiplier, sizeMultiplier, 2 * durationMultiplier, creature);
+
+                    EntryPoint.Bleeders.TryAddNoResize(bleeder);
                 }
             }
-
-            if (closestCollider == null) return;
-
-            SpawnNoseBleeder(-NostrilOffset); // left nostril
-            SpawnNoseBleeder(NostrilOffset); // right nostril
-
-            creature.StartCoroutine(DelayedRemoveCreature(creature, 4));
-
-            return;
-
-            void SpawnNoseBleeder(float nostrilOffset)
+            catch (Exception e)
             {
-                var noseOffset = UnderNoseOffset;
-                noseOffset.x = nostrilOffset;
-                var bleeder = new Bleeder(centerEyes, closestCollider, centerEyes.TransformPoint(noseOffset),
-                    centerEyes.rotation, Vector2.zero,
-                    2 * frequencyMultiplier, sizeMultiplier, 2 * durationMultiplier, creature);
-
-                EntryPoint.Bleeders.TryAddNoResize(bleeder);
+                Debug.LogException(e);
             }
         }
 
@@ -103,7 +111,14 @@ namespace RealisticBleeding
         {
             yield return new WaitForSeconds(delay);
 
-            BleedingCreatures.Remove(creature);
+            try
+            {
+                BleedingCreatures.Remove(creature);
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
     }
 }

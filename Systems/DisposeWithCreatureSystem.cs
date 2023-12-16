@@ -22,14 +22,21 @@ namespace RealisticBleeding.Systems
 
         private void OnCreatureSpawn(Creature creature)
         {
-            if (!TrackedCreatures.Add(creature)) return;
-
-            creature.OnDespawnEvent += time =>
+            try
             {
-                if (time == EventTime.OnStart) return;
+                if (!TrackedCreatures.Add(creature)) return;
 
-                OnCreatureDespawnEvent(creature);
-            };
+                creature.OnDespawnEvent += time =>
+                {
+                    if (time == EventTime.OnStart) return;
+
+                    OnCreatureDespawnEvent(creature);
+                };
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
+            }
         }
 
         private void OnCreatureDespawnEvent(Creature creature)

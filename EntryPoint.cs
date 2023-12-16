@@ -65,7 +65,7 @@ namespace RealisticBleeding
                 new FallingBloodDropSystem(FallingBloodDrops, SurfaceBloodDrops),
                 new SurfaceBloodDropUpdateSystem(SurfaceBloodDrops, FallingBloodDrops, Collider)
             };
-            
+
             _updateSystems = new List<BaseSystem>
             {
                 new FallingBloodDropRenderingSystem(FallingBloodDrops, sphereMesh),
@@ -78,59 +78,73 @@ namespace RealisticBleeding
 
         internal static void OnUpdate()
         {
-            if (Keyboard.current.tKey.wasPressedThisFrame)
+            try
             {
-                var cam = Spectator.local.cam.transform;
-                const float hitRange = 10f;
-
-                if (Physics.Raycast(cam.position, cam.forward, out var hit, hitRange, SurfaceLayerMask))
+                if (Keyboard.current.tKey.wasPressedThisFrame)
                 {
-                    var rigidbody = hit.collider.attachedRigidbody;
+                    var cam = Spectator.local.cam.transform;
+                    const float hitRange = 10f;
 
-                    if (rigidbody == null) return;
-
-                    if (rigidbody.TryGetComponent(out RagdollPart part))
+                    if (Physics.Raycast(cam.position, cam.forward, out var hit, hitRange, SurfaceLayerMask))
                     {
-                        var fallingDrop = new FallingBloodDrop(hit.point, Vector3.zero, 0.01f, 8);
-                        var surfaceDrop = new SurfaceBloodDrop(in fallingDrop, hit.collider);
-                        SurfaceBloodDrops.TryAddNoResize(surfaceDrop);
+                        var rigidbody = hit.collider.attachedRigidbody;
+
+                        if (rigidbody == null) return;
+
+                        if (rigidbody.TryGetComponent(out RagdollPart part))
+                        {
+                            var fallingDrop = new FallingBloodDrop(hit.point, Vector3.zero, 0.01f, 8);
+                            var surfaceDrop = new SurfaceBloodDrop(in fallingDrop, hit.collider);
+                            SurfaceBloodDrops.TryAddNoResize(surfaceDrop);
+                        }
+                    }
+                }
+
+                if (PauseSimulation) return;
+
+                var deltaTime = Time.deltaTime;
+
+                foreach (var updateSystem in _updateSystems)
+                {
+                    try
+                    {
+                        updateSystem.Update(deltaTime);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
                     }
                 }
             }
-
-            if (PauseSimulation) return;
-
-            var deltaTime = Time.deltaTime;
-
-            foreach (var updateSystem in _updateSystems)
+            catch (Exception e)
             {
-                try
-                {
-                    updateSystem.Update(deltaTime);
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
+                Debug.LogException(e);
             }
         }
 
         internal static void OnFixedUpdate()
         {
-            if (PauseSimulation) return;
-
-            var deltaTime = Time.deltaTime;
-
-            foreach (var fixedUpdateSystem in _fixedUpdateSystems)
+            try
             {
-                try
+                if (PauseSimulation) return;
+
+                var deltaTime = Time.deltaTime;
+
+                foreach (var fixedUpdateSystem in _fixedUpdateSystems)
                 {
-                    fixedUpdateSystem.Update(deltaTime);
+                    try
+                    {
+                        fixedUpdateSystem.Update(deltaTime);
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogException(e);
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                }
+            }
+            catch (Exception e)
+            {
+                Debug.LogException(e);
             }
         }
 
