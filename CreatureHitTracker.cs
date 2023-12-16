@@ -50,6 +50,11 @@ namespace RealisticBleeding
 
         private static readonly List<CollisionHandler> CollisionHandlers = new List<CollisionHandler>(32);
 
+        public static void Init()
+        {
+            EventManager.onCreatureHit += EventManagerOnCreatureHit;
+        }
+
         public static void OnCreatureSpawn(Creature creature)
         {
             creature.GetComponentsInChildren(true, CollisionHandlers);
@@ -60,6 +65,16 @@ namespace RealisticBleeding
 
                 collisionHandler.OnCollisionStartEvent += instance => OnCreatureHit(creature, instance);
             }
+        }
+
+        private static void EventManagerOnCreatureHit(Creature creature, CollisionInstance collisionInstance,
+            EventTime eventTime)
+        {
+            if (eventTime == EventTime.OnEnd) return;
+
+            if (collisionInstance.pressureRelativeVelocity == Vector3.zero) return;
+
+            OnCreatureHit(creature, collisionInstance);
         }
 
 

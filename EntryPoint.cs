@@ -72,6 +72,8 @@ namespace RealisticBleeding
             };
 
             var surfaceBloodDecalSystem = new SurfaceBloodDecalSystem(SurfaceBloodDrops);
+
+            CreatureHitTracker.Init();
         }
 
         internal static void OnUpdate()
