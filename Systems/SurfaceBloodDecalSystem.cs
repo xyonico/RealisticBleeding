@@ -109,6 +109,13 @@ namespace RealisticBleeding.Systems
 
                     var col = surfaceCollider.Collider;
 
+                    if (col == null)
+                    {
+                        _surfaceBloodDrops.RemoveAtSwapBack(index--);
+
+                        continue;
+                    }
+
                     var rb = col.attachedRigidbody;
                     if (!rb) continue;
 
@@ -131,6 +138,7 @@ namespace RealisticBleeding.Systems
                     foreach (var rendererData in ragdollPart.renderers)
                     {
                         if (!rendererData.revealDecal) continue;
+                        if (rendererData.renderer == null) continue;
 
                         var revealMaterialController = rendererData.revealDecal.revealMaterialController;
 
