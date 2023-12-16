@@ -83,7 +83,7 @@ namespace RealisticBleeding
                 var damageType = collisionInstance.damageStruct.damageType;
                 if (damageType == DamageType.Unknown || damageType == DamageType.Energy) return;
 
-                const float minBluntIntensity = 0.45f;
+                const float minBluntIntensity = 0.2f;
                 const float minSlashIntensity = 0.01f;
                 const float minPierceIntensity = 0.001f;
 
@@ -155,7 +155,7 @@ namespace RealisticBleeding
                             }
                         }
 
-                        if (collisionInstance.intensity > 0.5f)
+                        if (collisionInstance.intensity > 0.45f)
                         {
                             NoseBleed.SpawnOnDelayed(creature, Random.Range(1f, 2), intensity, intensity,
                                 Mathf.Clamp(intensity, 0.8f, 1.1f));
