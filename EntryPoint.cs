@@ -57,13 +57,12 @@ namespace RealisticBleeding
             var sphereMesh = spherePrimitive.GetComponent<MeshFilter>().sharedMesh;
             spherePrimitive.transform.position = new Vector3(100000, 100000, 100000);
 
-            EffectRevealPatches.PlayPatch.Init();
-
             _fixedUpdateSystems = new List<BaseSystem>
             {
                 new BleederSystem(Bleeders, SurfaceBloodDrops),
                 new FallingBloodDropSystem(FallingBloodDrops, SurfaceBloodDrops),
-                new SurfaceBloodDropUpdateSystem(SurfaceBloodDrops, FallingBloodDrops, Collider)
+                new SurfaceBloodDropUpdateSystem(SurfaceBloodDrops, FallingBloodDrops, Collider),
+                new CreatureTracker(SurfaceBloodDrops, Bleeders)
             };
 
             _updateSystems = new List<BaseSystem>
@@ -73,7 +72,6 @@ namespace RealisticBleeding
             };
 
             var surfaceBloodDecalSystem = new SurfaceBloodDecalSystem(SurfaceBloodDrops);
-            var disposeWithCreatureSystem = new DisposeWithCreatureSystem(SurfaceBloodDrops, Bleeders);
         }
 
         internal static void OnUpdate()

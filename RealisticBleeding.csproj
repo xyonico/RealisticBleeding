@@ -85,7 +85,7 @@
         <Compile Include="SurfaceBloodDrop.cs" />
         <Compile Include="Components\Bleeder.cs" />
         <Compile Include="Components\SurfaceCollider.cs" />
-        <Compile Include="EffectRevealPatches.cs" />
+        <Compile Include="CreatureHitTracker.cs" />
         <Compile Include="EntryPoint.cs" />
         <Compile Include="FastList.cs" />
         <Compile Include="ModOptionPercentage.cs" />
@@ -96,7 +96,7 @@
         <Compile Include="Systems\BaseSystem.cs" />
         <Compile Include="Systems\BleederSystem.cs" />
         <Compile Include="Systems\DebugSurfaceBloodSystem.cs" />
-        <Compile Include="Systems\DisposeWithCreatureSystem.cs" />
+        <Compile Include="Systems\CreatureTracker.cs" />
         <Compile Include="Systems\FallingBloodDropRenderingSystem.cs" />
         <Compile Include="Systems\FallingBloodDropSystem.cs" />
         <Compile Include="Systems\SurfaceBloodDecalSystem.cs" />

@@ -6,25 +6,38 @@ using UnityEngine;
 
 namespace RealisticBleeding.Systems
 {
-    public class DisposeWithCreatureSystem
+    public class CreatureTracker : BaseSystem
     {
-        private static readonly HashSet<Creature> TrackedCreatures = new HashSet<Creature>();
-
+        private readonly HashSet<Creature> _trackedCreatures = new HashSet<Creature>();
         private readonly FastList<SurfaceBloodDrop> _surfaceBloodDrops;
         private readonly FastList<Bleeder> _bleeders;
 
-        public DisposeWithCreatureSystem(FastList<SurfaceBloodDrop> surfaceBloodDrops, FastList<Bleeder> bleeders)
+        public CreatureTracker(FastList<SurfaceBloodDrop> surfaceBloodDrops, FastList<Bleeder> bleeders)
         {
             _surfaceBloodDrops = surfaceBloodDrops;
             _bleeders = bleeders;
-            EventManager.onCreatureSpawn += OnCreatureSpawn;
+        }
+
+        protected override void UpdateInternal(float deltaTime)
+        {
+            var allCreatures = Creature.all;
+
+            for (var i = 0; i < allCreatures.Count; i++)
+            {
+                var creature = allCreatures[i];
+
+                if (_trackedCreatures.Add(creature))
+                {
+                    OnCreatureSpawn(creature);
+                }
+            }
         }
 
         private void OnCreatureSpawn(Creature creature)
         {
             try
             {
-                if (!TrackedCreatures.Add(creature)) return;
+                Debug.Log($"OnCreatureSpawn: {creature.name}, isPlayer: {creature.isPlayer}");
 
                 creature.OnDespawnEvent += time =>
                 {
@@ -32,6 +45,8 @@ namespace RealisticBleeding.Systems
 
                     OnCreatureDespawnEvent(creature);
                 };
+
+                CreatureHitTracker.OnCreatureSpawn(creature);
             }
             catch (Exception e)
             {
