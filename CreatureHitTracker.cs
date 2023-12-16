@@ -67,8 +67,6 @@ namespace RealisticBleeding
         {
             try
             {
-                Debug.Log($"On hit: {creature.name}");
-
                 if (!GameManager.options.enableCharacterReveal) return;
                 if (EntryPoint.PauseSimulation) return;
 
