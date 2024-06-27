@@ -1,27 +1,36 @@
-using System;
-using DefaultEcs;
-using DefaultEcs.System;
-using RealisticBleeding.Components;
+using ThunderRoad;
 using UnityEngine;
 
 namespace RealisticBleeding.Systems
 {
-	public class FallingBloodDropRenderingSystem : AEntitySetSystem<float>
+	public class FallingBloodDropRenderingSystem : BaseSystem
 	{
+		private readonly FastList<FallingBloodDrop> _fallingBloodDrops;
 		private readonly Mesh _mesh;
-		private readonly Material _material;
+		
+		private Material _material;
 
-		public FallingBloodDropRenderingSystem(EntitySet set, Mesh mesh, Material material) : base(set)
+		private bool _firstFrame = true;
+
+		public FallingBloodDropRenderingSystem(FastList<FallingBloodDrop> fallingBloodDrops, Mesh mesh)
 		{
+			_fallingBloodDrops = fallingBloodDrops;
 			_mesh = mesh;
-			_material = material;
 		}
 
-		protected override void Update(float state, ReadOnlySpan<Entity> entities)
+		protected override void UpdateInternal(float deltaTime)
 		{
-			foreach (var entity in entities)
+			if (_firstFrame)
 			{
-				ref var bloodDrop = ref entity.Get<BloodDrop>();
+				_firstFrame = false;
+				
+				Catalog.LoadAssetAsync("RealisticBleeding/BloodDrop",
+					(Material material) => { _material = material; }, null);
+			}
+			
+			for (var index = 0; index < _fallingBloodDrops.Count; index++)
+			{
+				ref var bloodDrop = ref _fallingBloodDrops[index];
 
 				var magnitude = bloodDrop.Velocity.magnitude;
 				var size = Mathf.Lerp(1, 3.5f, Mathf.InverseLerp(0, 4, magnitude));

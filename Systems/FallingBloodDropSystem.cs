@@ -1,47 +1,58 @@
-using System;
-using DefaultEcs;
-using RealisticBleeding.Components;
-using RealisticBleeding.Messages;
 using ThunderRoad;
 using UnityEngine;
 
 namespace RealisticBleeding.Systems
 {
-	public class FallingBloodDropSystem : BaseSystem
-	{
-		public FallingBloodDropSystem(EntitySet entitySet) : base(entitySet)
-		{
-		}
+    public class FallingBloodDropSystem : BaseSystem
+    {
+        private readonly FastList<FallingBloodDrop> _fallingBloodDrops;
+        private readonly FastList<SurfaceBloodDrop> _surfaceBloodDrops;
 
-		protected override void Update(float deltaTime, ReadOnlySpan<Entity> entities)
-		{
-			ref var layerMasks = ref World.Get<LayerMasks>();
+        public FallingBloodDropSystem(FastList<FallingBloodDrop> fallingBloodDrops,
+            FastList<SurfaceBloodDrop> surfaceBloodDrops)
+        {
+            _fallingBloodDrops = fallingBloodDrops;
+            _surfaceBloodDrops = surfaceBloodDrops;
+        }
 
-			foreach (var entity in entities)
-			{
-				ref var bloodDrop = ref entity.Get<BloodDrop>();
-				
-				bloodDrop.Velocity += Physics.gravity * deltaTime;
+        protected override void UpdateInternal(float deltaTime)
+        {
+            for (var index = 0; index < _fallingBloodDrops.Count; index++)
+            {
+                ref var bloodDrop = ref _fallingBloodDrops[index];
+                
+                bloodDrop.Velocity += Physics.gravity * deltaTime;
 
-				if (Physics.SphereCast(bloodDrop.Position, bloodDrop.Size, bloodDrop.Velocity.normalized, out var hit, bloodDrop.Velocity.magnitude * deltaTime,
-					layerMasks.Combined, QueryTriggerInteraction.Ignore))
-				{
-					bloodDrop.Position = hit.point;
-					
-					if (layerMasks.Environment.Contains(hit.collider.gameObject.layer))
-					{
-						World.Publish(new BloodDropHitEnvironment(entity, hit.collider, hit.normal));
+                if (Physics.SphereCast(bloodDrop.Position, bloodDrop.Size, bloodDrop.Velocity.normalized, out var hit,
+                        bloodDrop.Velocity.magnitude * deltaTime,
+                        EntryPoint.SurfaceAndEnvironmentLayerMask, QueryTriggerInteraction.Ignore))
+                {
+                    bloodDrop.Position = hit.point;
 
-						return;
-					}
+                    _fallingBloodDrops.RemoveAtSwapBack(index--);
 
-					World.Publish(new BloodDropHitSurface(entity, hit.collider));
-				}
-				else
-				{
-					bloodDrop.Position += bloodDrop.Velocity * deltaTime;
-				}
-			}
-		}
-	}
+                    if (EntryPoint.EnvironmentLayerMask.Contains(hit.collider.gameObject.layer))
+                    {
+                        FallingBloodDrop.OnFallingDropHitEnvironment(in bloodDrop, hit.normal);
+
+                        continue;
+                    }
+
+                    var surfaceBloodDrop = new SurfaceBloodDrop(in bloodDrop, hit.collider);
+
+                    _surfaceBloodDrops.TryAddNoResize(in surfaceBloodDrop);
+                }
+                else
+                {
+                    bloodDrop.Position += bloodDrop.Velocity * deltaTime;
+                    bloodDrop.LifetimeRemaining -= deltaTime;
+
+                    if (bloodDrop.LifetimeRemaining < 0)
+                    {
+                        _fallingBloodDrops.RemoveAtSwapBack(index--);
+                    }
+                }
+            }
+        }
+    }
 }

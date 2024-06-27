@@ -1,48 +1,16 @@
-using System;
-using DefaultEcs;
-using DefaultEcs.System;
-using Unity.Profiling;
-
 namespace RealisticBleeding.Systems
 {
-	public abstract class BaseSystem : ISystem<float>
-	{
-		private readonly EntitySet _entitySet;
+    public abstract class BaseSystem
+    {
+        public bool IsEnabled { get; set; } = true;
 
-		private readonly ProfilerMarker _profilerMarker; 
-		
-		public bool IsEnabled { get; set; } = true;
-		public World World => _entitySet.World;
+        public void Update(float deltaTime)
+        {
+            if (!IsEnabled) return;
 
-		public BaseSystem(EntitySet entitySet)
-		{
-			_entitySet = entitySet;
+            UpdateInternal(deltaTime);
+        }
 
-			_profilerMarker = new ProfilerMarker(ProfilerCategory.Scripts, $"RealisticBleeding.{GetType().Name}.Update");
-		}
-
-		void ISystem<float>.Update(float state)
-		{
-			using (_profilerMarker.Auto())
-			{
-				Update(state, _entitySet.GetEntities());
-			}
-		}
-
-		protected virtual void Update(float deltaTime, in Entity entity)
-		{
-		}
-
-		protected virtual void Update(float deltaTime, ReadOnlySpan<Entity> entities)
-		{
-			foreach (var entity in entities)
-			{
-				Update(deltaTime, entity);
-			}
-		}
-
-		void IDisposable.Dispose()
-		{
-		}
-	}
+        protected abstract void UpdateInternal(float deltaTime);
+    }
 }

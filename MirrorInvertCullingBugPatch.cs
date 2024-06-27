@@ -1,3 +1,4 @@
+using System;
 using HarmonyLib;
 using ThunderRoad;
 using UnityEngine;
@@ -13,7 +14,7 @@ namespace RealisticBleeding
 	/// </summary>
 	public static class MirrorInvertCullingBugPatch
 	{
-		[HarmonyPatch(typeof(Mirror), "RenderCam")]
+		[HarmonyPatch(typeof(Mirror), "RenderCam", typeof (ScriptableRenderContext), typeof(Camera))]
 		public static class RenderCamPatch
 		{
 			private static CommandBuffer _invertCullingCommandBuffer;

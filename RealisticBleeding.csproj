@@ -35,9 +35,6 @@
         <Reference Include="0Harmony, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding\0Harmony.dll</HintPath>
         </Reference>
-        <Reference Include="DefaultEcs">
-          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding\DefaultEcs.dll</HintPath>
-        </Reference>
         <Reference Include="mscorlib">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\mscorlib.dll</HintPath>
         </Reference>
@@ -59,6 +56,15 @@
         <Reference Include="ThunderRoad, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
         </Reference>
+        <Reference Include="Unity.Collections">
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.Collections.dll</HintPath>
+        </Reference>
+        <Reference Include="Unity.InputSystem">
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
+        </Reference>
+        <Reference Include="Unity.Mathematics">
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.Mathematics.dll</HintPath>
+        </Reference>
         <Reference Include="Unity.RenderPipelines.Core.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
         </Reference>
@@ -76,44 +82,34 @@
         </Reference>
     </ItemGroup>
     <ItemGroup>
-        <Compile Include="BloodMaterial.cs" />
-        <Compile Include="Components\Bleeder.cs" />
-        <Compile Include="Components\BloodDrop.cs" />
-        <Compile Include="Components\DeltaTimeMultiplier.cs" />
-        <Compile Include="Components\DisposeWithCreature.cs" />
-        <Compile Include="Components\LayerMasks.cs" />
-        <Compile Include="Components\Lifetime.cs" />
-        <Compile Include="Components\ShouldUpdate.cs" />
-        <Compile Include="Components\SurfaceCollider.cs" />
+        <Compile Include="Components\DripTime.cs" />
         <Compile Include="CreatureDespawnHook.cs" />
         <Compile Include="DecalResolutionPatch.cs" />
         <Compile Include="DisableMaskMipMappingPatch.cs" />
         <Compile Include="EffectRevealPatches.cs" />
+        <Compile Include="FallingBloodDrop.cs" />
+        <Compile Include="InsertIntoSortedListExtensions.cs" />
+        <Compile Include="MirrorInvertCullingBugPatch.cs" />
+        <Compile Include="ReuseMaskTextureForLODSPatch.cs" />
+        <Compile Include="SurfaceBloodDrop.cs" />
+        <Compile Include="Components\Bleeder.cs" />
+        <Compile Include="Components\SurfaceCollider.cs" />
         <Compile Include="EntryPoint.cs" />
+        <Compile Include="FastList.cs" />
         <Compile Include="ModOptionPercentage.cs" />
         <Compile Include="Script.cs" />
-        <Compile Include="Messages\BloodDropHitEnvironmentMessage.cs" />
-        <Compile Include="Messages\BloodDropHitSurfaceMessage.cs" />
         <Compile Include="MouthBleed.cs" />
         <Compile Include="NoseBleed.cs" />
         <Compile Include="Properties\AssemblyInfo.cs" />
-        <Compile Include="MirrorInvertCullingBugPatch.cs" />
-        <Compile Include="ReuseMaskTextureForLODSPatch.cs" />
         <Compile Include="Systems\BaseSystem.cs" />
         <Compile Include="Systems\BleederSystem.cs" />
-        <Compile Include="Systems\BloodDropDrippingSystem.cs" />
-        <Compile Include="Systems\DisposeWithCreatureSystem.cs" />
+        <Compile Include="Systems\DebugSurfaceBloodSystem.cs" />
+        <Compile Include="Systems\CreatureTracker.cs" />
         <Compile Include="Systems\FallingBloodDropRenderingSystem.cs" />
         <Compile Include="Systems\FallingBloodDropSystem.cs" />
-        <Compile Include="Systems\LifetimeSystem.cs" />
         <Compile Include="Systems\SurfaceBloodDecalSystem.cs" />
-        <Compile Include="Systems\SurfaceBloodDropOptimizationSystem.cs" />
-        <Compile Include="Systems\SurfaceBloodDropPhysicsSystem.cs" />
-        <Compile Include="Systems\SurfaceBloodDropVelocityRandomnessSystem.cs" />
+        <Compile Include="Systems\SurfaceBloodDropUpdateSystem.cs" />
         <Compile Include="Vector3Extensions.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <None Include="packages.config" />
     </ItemGroup>
     <ItemGroup>
       <Content Include="RealisticBloodDecal.shader" />
