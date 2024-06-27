@@ -43,8 +43,6 @@ namespace RealisticBleeding.Systems
 
                     OnCreatureDespawnEvent(creature);
                 };
-
-                CreatureHitTracker.OnCreatureSpawn(creature);
             }
             catch (Exception e)
             {

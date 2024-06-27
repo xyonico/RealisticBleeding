@@ -32,6 +32,9 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
+        <Reference Include="0Harmony, Version=2.1.0.0, Culture=neutral, PublicKeyToken=null">
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\StreamingAssets\Mods\RealisticBleeding\0Harmony.dll</HintPath>
+        </Reference>
         <Reference Include="mscorlib">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\mscorlib.dll</HintPath>
         </Reference>
@@ -54,13 +57,13 @@
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\ThunderRoad.dll</HintPath>
         </Reference>
         <Reference Include="Unity.Collections">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.Collections.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.Collections.dll</HintPath>
         </Reference>
         <Reference Include="Unity.InputSystem">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.InputSystem.dll</HintPath>
         </Reference>
         <Reference Include="Unity.Mathematics">
-          <HintPath>..\..\..\SteamLibrary\steamapps\common\Blade &amp; Sorcery\BladeAndSorcery_Data\Managed\Unity.Mathematics.dll</HintPath>
+          <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.Mathematics.dll</HintPath>
         </Reference>
         <Reference Include="Unity.RenderPipelines.Core.Runtime, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null">
           <HintPath>$(BladeAndSorceryInstallPath)\BladeAndSorcery_Data\Managed\Unity.RenderPipelines.Core.Runtime.dll</HintPath>
@@ -80,12 +83,17 @@
     </ItemGroup>
     <ItemGroup>
         <Compile Include="Components\DripTime.cs" />
+        <Compile Include="CreatureDespawnHook.cs" />
+        <Compile Include="DecalResolutionPatch.cs" />
+        <Compile Include="DisableMaskMipMappingPatch.cs" />
+        <Compile Include="EffectRevealPatches.cs" />
         <Compile Include="FallingBloodDrop.cs" />
         <Compile Include="InsertIntoSortedListExtensions.cs" />
+        <Compile Include="MirrorInvertCullingBugPatch.cs" />
+        <Compile Include="ReuseMaskTextureForLODSPatch.cs" />
         <Compile Include="SurfaceBloodDrop.cs" />
         <Compile Include="Components\Bleeder.cs" />
         <Compile Include="Components\SurfaceCollider.cs" />
-        <Compile Include="CreatureHitTracker.cs" />
         <Compile Include="EntryPoint.cs" />
         <Compile Include="FastList.cs" />
         <Compile Include="ModOptionPercentage.cs" />

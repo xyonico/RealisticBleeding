@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HarmonyLib;
 using RealisticBleeding.Components;
 using RealisticBleeding.Systems;
 using ThunderRoad;
@@ -11,6 +12,8 @@ namespace RealisticBleeding
 {
     internal static class EntryPoint
     {
+        private const string HarmonyID = "com.xyonico.realistic-bleeding";
+        
         private static bool _hasLoaded;
 
         [ModOptionCategory("Features", 0)]
@@ -39,6 +42,9 @@ namespace RealisticBleeding
             _hasLoaded = true;
 
             Debug.Log("Realistic Bleeding loaded!");
+            
+            var harmony = new Harmony(HarmonyID);
+            harmony.PatchAll(typeof(EntryPoint).Assembly);
 
             SurfaceLayerMask = LayerMask.GetMask(nameof(LayerName.Avatar), nameof(LayerName.Ragdoll),
                 nameof(LayerName.NPC),
@@ -72,8 +78,6 @@ namespace RealisticBleeding
             };
 
             var surfaceBloodDecalSystem = new SurfaceBloodDecalSystem(SurfaceBloodDrops);
-
-            CreatureHitTracker.Init();
         }
 
         internal static void OnUpdate()

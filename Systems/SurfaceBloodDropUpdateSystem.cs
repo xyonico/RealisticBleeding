@@ -45,8 +45,6 @@ namespace RealisticBleeding.Systems
 
         protected override void UpdateInternal(float deltaTime)
         {
-            if (_surfaceBloodDrops.Count == 0) return;
-
             for (var i = 0; i < _surfaceBloodDrops.Count; i++)
             {
                 ref var bloodDrop = ref _surfaceBloodDrops[i];
@@ -58,6 +56,8 @@ namespace RealisticBleeding.Systems
                     _surfaceBloodDrops.RemoveAtSwapBack(i--);
                 }
             }
+            
+            if (_surfaceBloodDrops.Count == 0) return;
             
             var updateCount = 0;
 

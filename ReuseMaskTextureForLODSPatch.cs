@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using HarmonyLib;
 using ThunderRoad;
 using ThunderRoad.Reveal;
 using UnityEngine;
@@ -14,7 +15,7 @@ namespace RealisticBleeding
 	{
 		private static readonly int RevealMaskNameID = Shader.PropertyToID("_RevealMask");
 
-		//[HarmonyPatch(typeof(RevealDecal), "Awake")]
+		[HarmonyPatch(typeof(RevealDecal), "Awake")]
 		public static class RemoveRevealDecalOnLODSPatch
 		{
 			private static bool Prefix(RevealDecal __instance)
@@ -103,7 +104,7 @@ namespace RealisticBleeding
 			}
 		}
 
-		//[HarmonyPatch(typeof(RevealMaterialController), "ActivateRevealMaterials")]
+		[HarmonyPatch(typeof(RevealMaterialController), "ActivateRevealMaterials")]
 		public static class AssignMaskTextureToLODSPatch
 		{
 			private static void Postfix(RevealMaterialController __instance, bool __result)
